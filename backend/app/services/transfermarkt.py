@@ -35,11 +35,46 @@ def _norm(name: str) -> str:
     return name.translate(replacements).lower().strip()
 
 
-async def _find_club_id(client: httpx.AsyncClient, club: Club) -> int | None:
-    resp = await client.get(f"/clubs/search/{club.name}")
+# football-data.org'un resmi tam adlari ("FC Internazionale Milano", "Stade
+# Rennais FC 1901") transfermarkt'in arama indeksinde sik sik SIFIR sonuc
+# donduruyor; kisaltilmis/kuruluş-yili-siz hali ("Inter", "Stade Rennais")
+# genelde eslesiyor. Bu yuzden ilk arama bos/dusuk skorlu donerse basitlestirilmis
+# isimle ikinci bir deneme yapilir.
+_CLUB_NAME_STOPWORDS = {
+    "fc", "cf", "afc", "ac", "as", "ssc", "acf", "us", "usd", "uc", "rc", "cd",
+    "sd", "sc", "osc", "bc", "ca", "de", "club", "calcio", "futbol",
+}
+
+
+def _simplify_club_name(name: str) -> str:
+    tokens = [t for t in name.split() if not t.isdigit() and t.lower() not in _CLUB_NAME_STOPWORDS]
+    simplified = " ".join(tokens).strip()
+    return simplified if simplified and simplified.lower() != name.lower() else ""
+
+
+# football-data.org adlari icin genel basitlestirme yetersiz kalan kulupler
+# (elle test edilip transfermarkt-api'de gercekten calistigi dogrulanmis
+# takma isimler). "FC Internazionale Milano" -> "Inter" bekleniyordu ama
+# transfermarkt'in arama uctu tuhaf sekilde BUYUK harfle "Inter" icin 0 sonuc
+# donduruyor (kucuk harf "inter" calisiyor, ama "Internazionale" her ikisinde
+# de guvenilir calistigi icin o tercih edildi).
+_CLUB_NAME_ALIASES: dict[str, str] = {
+    "1. FC Heidenheim 1846": "Heidenheim",
+    "1. FSV Mainz 05": "Mainz 05",
+    "AC Pisa 1909": "Pisa",
+    "FC Internazionale Milano": "Internazionale",
+    "Racing Club de Lens": "RC Lens",
+}
+
+
+async def _search_clubs(client: httpx.AsyncClient, query: str) -> list[dict]:
+    resp = await client.get(f"/clubs/search/{query}")
     if resp.status_code != 200:
-        return None
-    results = resp.json().get("results", [])
+        return []
+    return resp.json().get("results", [])
+
+
+def _best_from_results(results: list[dict], club: Club) -> tuple[int | None, float]:
     best_id, best_score = None, 0.0
     for r in results:
         score = fuzz.token_set_ratio(_norm(club.name), _norm(r.get("name", "")))
@@ -48,6 +83,26 @@ async def _find_club_id(client: httpx.AsyncClient, club: Club) -> int | None:
             score -= 15  # ayni isimli farkli ulke kulubu cezasi
         if score > best_score:
             best_id, best_score = r.get("id"), score
+    return best_id, best_score
+
+
+async def _find_club_id(client: httpx.AsyncClient, club: Club) -> int | None:
+    best_id, best_score = _best_from_results(await _search_clubs(client, club.name), club)
+
+    if best_score < _CLUB_MATCH_THRESHOLD:
+        alias = _CLUB_NAME_ALIASES.get(club.name)
+        if alias:
+            alt_id, alt_score = _best_from_results(await _search_clubs(client, alias), club)
+            if alt_score > best_score:
+                best_id, best_score = alt_id, alt_score
+
+    if best_score < _CLUB_MATCH_THRESHOLD:
+        simplified = _simplify_club_name(club.name)
+        if simplified:
+            alt_id, alt_score = _best_from_results(await _search_clubs(client, simplified), club)
+            if alt_score > best_score:
+                best_id, best_score = alt_id, alt_score
+
     if best_score >= _CLUB_MATCH_THRESHOLD and best_id is not None:
         return int(best_id)
     logger.info("Transfermarkt kulup eslesmesi bulunamadi: %s (skor %.0f)", club.name, best_score)
@@ -74,8 +129,9 @@ def _parse_value(raw) -> int | None:
         return None
 
 
-async def sync_market_values(session: AsyncSession) -> str:
-    """Tum kuluplerin oyuncularina transfermarkt piyasa degerlerini yazar.
+async def sync_market_values(session: AsyncSession, club_ids: list[int] | None = None) -> str:
+    """Tum kuluplerin (ya da verilen `club_ids` alt kumesinin) oyuncularina
+    transfermarkt piyasa degerlerini yazar.
 
     NOT: Kulup ID'leri once duz bir listeye alinir, her iterasyonda kulup
     `session.get` ile TAZE cekilir. Bir onceki kulupte httpx hatasi olup
@@ -87,7 +143,10 @@ async def sync_market_values(session: AsyncSession) -> str:
     settings = get_settings()
     updated = skipped = 0
 
-    club_ids = (await session.execute(select(Club.id))).scalars().all()
+    stmt = select(Club.id)
+    if club_ids is not None:
+        stmt = stmt.where(Club.id.in_(club_ids))
+    club_ids = (await session.execute(stmt)).scalars().all()
 
     async with httpx.AsyncClient(base_url=settings.transfermarkt_api_url, timeout=60) as client:
         for club_id in club_ids:

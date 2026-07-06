@@ -9,6 +9,7 @@ import asyncio
 import logging
 
 import httpx
+from rapidfuzz import fuzz
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,6 +21,16 @@ logger = logging.getLogger(__name__)
 # API-Football pozisyonlari -> ana kategori
 _POSITION_MAP = {"Goalkeeper": "GK", "Defender": "DF", "Midfielder": "MF", "Attacker": "FW"}
 _DETAIL_MAP = {"GK": "Kaleci", "DF": "Defans", "MF": "Orta Saha", "FW": "Forvet"}
+
+# football-data.org uzerinden senkron edilen yabanci ligler icin API-Football lig ID'leri
+# (yalnizca koc/ID baglama amacli — kulup/kadro sync'i bu liglerde hala football-data.org'dan)
+_FOREIGN_LEAGUE_IDS = {39: "Premier League", 140: "La Liga", 78: "Bundesliga", 135: "Serie A", 61: "Ligue 1"}
+_CLUB_MATCH_THRESHOLD = 82
+
+
+def _norm(name: str) -> str:
+    replacements = str.maketrans("çğıöşüÇĞİÖŞÜ", "cgiosuCGIOSU")
+    return name.translate(replacements).lower().strip()
 
 
 def _client() -> httpx.AsyncClient:
@@ -361,3 +372,97 @@ async def _store_transfers(session: AsyncSession, item: dict, since: str) -> int
         )
         stored += 1
     return stored
+
+
+async def link_and_sync_foreign_coaches(session: AsyncSession, max_coach_requests: int = 90) -> str:
+    """football-data.org uzerinden senkron edilmis (yalnizca
+    external_football_data_org_id dolu) PL/La Liga/Bundesliga/Serie A/Ligue 1
+    kulüplerini API-Football team ID'sine bağlar, sonra /coachs ile teknik
+    direktörlerini doldurur.
+
+    API-Football'da kulüp adına göre arama endpoint'i yok; bunun yerine her lig
+    için TEK istekle /teams çekilip yerelde fuzzy-match yapılır (96 kulüp için
+    böylece sadece 5 istek harcanır, kulüp başına değil).
+
+    `max_coach_requests`: günlük kota aşılmasın diye /coachs çağrı sayısı
+    sınırlanır; kalan kulüpler zaten bağlanmış+koçsuz olarak bir sonraki
+    çalıştırmada otomatik işlenir (idempotent).
+    """
+    settings = get_settings()
+    if not settings.api_football_key:
+        return "API_FOOTBALL_KEY tanimli degil, senkronizasyon atlandi."
+
+    linked = 0
+    async with _client() as client:
+        for league_id, league_name in _FOREIGN_LEAGUE_IDS.items():
+            try:
+                teams = await _get(
+                    client, "/teams", {"league": league_id, "season": settings.api_football_season}
+                )
+            except httpx.HTTPError as exc:
+                logger.warning("Yabanci lig takim listesi atlandi (%s): %s", league_name, exc)
+                await asyncio.sleep(2)
+                continue
+
+            candidates = (
+                await session.execute(
+                    select(Club).where(
+                        Club.league == league_name, Club.external_api_football_id.is_(None)
+                    )
+                )
+            ).scalars().all()
+
+            for item in teams:
+                team = item["team"]
+                target = _norm(team["name"])
+                best, best_score = None, 0.0
+                for c in candidates:
+                    score = fuzz.token_set_ratio(target, _norm(c.name))
+                    if score > best_score:
+                        best, best_score = c, score
+                if best is not None and best_score >= _CLUB_MATCH_THRESHOLD:
+                    best.external_api_football_id = team["id"]
+                    linked += 1
+                    candidates.remove(best)
+
+            await session.commit()
+            await asyncio.sleep(2)
+
+        # Bağlanmış (external_api_football_id dolu) ama henüz koçsuz kulüpleri
+        # işle. ÖNEMLİ: id listesi tutulup her turda session.get() ile taze
+        # çekiliyor — bir kulüpte httpx hatası olup rollback tetiklenirse, onceden
+        # yuklenmis ORM nesneleri uzerinde devam etmek MissingGreenlet'e yol acar
+        # (bkz. transfermarkt.py sync_market_values'taki ayni duzeltme).
+        club_ids = (
+            await session.execute(
+                select(Club.id).where(
+                    Club.external_api_football_id.isnot(None),
+                    Club.league.in_(list(_FOREIGN_LEAGUE_IDS.values())),
+                )
+            )
+        ).scalars().all()
+
+        coached = coach_calls = 0
+        for club_id in club_ids:
+            if coach_calls >= max_coach_requests:
+                break
+            club = await session.get(Club, club_id)
+            has_coach = (
+                await session.execute(select(Coach.id).where(Coach.club_id == club.id))
+            ).scalar_one_or_none()
+            if has_coach is not None:
+                continue
+            try:
+                await _sync_coach(client, session, club)
+                await session.commit()
+                coached += 1
+            except httpx.HTTPError as exc:
+                logger.warning("Koc senkronu atlandi (%s): %s", club.name, exc)
+                await session.rollback()
+            coach_calls += 1
+            await asyncio.sleep(7)
+
+    return (
+        f"{linked} kulüp API-Football ID'sine bağlandı, {coached} koç senkronize edildi "
+        f"({coach_calls} istek harcandı, kalanlar bir sonraki çalıştırmada tamamlanır)."
+    )
