@@ -125,6 +125,29 @@ class TopStatOut(ORMModel):
     assists: int
 
 
+class GameCardOut(BaseModel):
+    """'Kim Daha İyi?' oyunu için tek bir oyuncu kartı.
+
+    `id` kategoriye göre farklı bir tabloya işaret eder (market_value için
+    Player.id, goals/assists için PlayerSeasonStat.id) — frontend bunu
+    şeffafçe `exclude_id` olarak geri yollar, hangi tabloya ait olduğunu
+    bilmesi gerekmez.
+    """
+
+    id: int
+    name: str
+    photo_url: str | None = None
+    club_name: str | None = None
+    club_logo: str | None = None
+    value: int
+
+
+class GameRoundOut(BaseModel):
+    left: GameCardOut
+    right: GameCardOut
+    higher_id: int
+
+
 class ClubValueOut(BaseModel):
     club: ClubMini
     total_market_value: int

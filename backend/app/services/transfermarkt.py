@@ -62,8 +62,11 @@ _CLUB_NAME_ALIASES: dict[str, str] = {
     "1. FC Heidenheim 1846": "Heidenheim",
     "1. FSV Mainz 05": "Mainz 05",
     "AC Pisa 1909": "Pisa",
-    "FC Internazionale Milano": "Internazionale",
+    "FC Internazionale Milano": "Inter Milan",
     "Racing Club de Lens": "RC Lens",
+}
+_CLUB_TRANSFERMARKT_IDS: dict[str, int] = {
+    "FC Internazionale Milano": 46,
 }
 
 
@@ -76,17 +79,29 @@ async def _search_clubs(client: httpx.AsyncClient, query: str) -> list[dict]:
 
 def _best_from_results(results: list[dict], club: Club) -> tuple[int | None, float]:
     best_id, best_score = None, 0.0
+    search_names = [club.name]
+    alias = _CLUB_NAME_ALIASES.get(club.name)
+    if alias:
+        search_names.append(alias)
+    simplified = _simplify_club_name(club.name)
+    if simplified:
+        search_names.append(simplified)
+
     for r in results:
-        score = fuzz.token_set_ratio(_norm(club.name), _norm(r.get("name", "")))
+        result_name = _norm(r.get("name", ""))
+        score = max(fuzz.token_set_ratio(_norm(name), result_name) for name in search_names)
         country = (r.get("country") or "").lower()
         if club.country and country and club.country.lower() != country:
-            score -= 15  # ayni isimli farkli ulke kulubu cezasi
+            score -= 50  # ayni isimli farkli ulke kulubu cezasi
         if score > best_score:
             best_id, best_score = r.get("id"), score
     return best_id, best_score
 
 
 async def _find_club_id(client: httpx.AsyncClient, club: Club) -> int | None:
+    if club.name in _CLUB_TRANSFERMARKT_IDS:
+        return _CLUB_TRANSFERMARKT_IDS[club.name]
+
     best_id, best_score = _best_from_results(await _search_clubs(client, club.name), club)
 
     if best_score < _CLUB_MATCH_THRESHOLD:
@@ -152,7 +167,10 @@ async def sync_market_values(session: AsyncSession, club_ids: list[int] | None =
         for club_id in club_ids:
             club = await session.get(Club, club_id, options=[selectinload(Club.players)])
             try:
-                if club.transfermarkt_id is None:
+                known_id = _CLUB_TRANSFERMARKT_IDS.get(club.name)
+                if known_id is not None:
+                    club.transfermarkt_id = known_id
+                elif club.transfermarkt_id is None:
                     club.transfermarkt_id = await _find_club_id(client, club)
                     await asyncio.sleep(1)
                 if club.transfermarkt_id is None:

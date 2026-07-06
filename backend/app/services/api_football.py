@@ -26,11 +26,76 @@ _DETAIL_MAP = {"GK": "Kaleci", "DF": "Defans", "MF": "Orta Saha", "FW": "Forvet"
 # (yalnizca koc/ID baglama amacli — kulup/kadro sync'i bu liglerde hala football-data.org'dan)
 _FOREIGN_LEAGUE_IDS = {39: "Premier League", 140: "La Liga", 78: "Bundesliga", 135: "Serie A", 61: "Ligue 1"}
 _CLUB_MATCH_THRESHOLD = 82
+_FOREIGN_CLUB_ALIASES: dict[str, str] = {
+    "1. FC Köln": "FC Koln",
+    "Brighton & Hove Albion FC": "Brighton",
+    "Burnley FC": "Burnley",
+    "Leeds United FC": "Leeds",
+    "Sunderland AFC": "Sunderland",
+    "Tottenham Hotspur FC": "Tottenham",
+    "West Ham United FC": "West Ham",
+    "Wolverhampton Wanderers FC": "Wolves",
+    "Club Atlético de Madrid": "Atletico Madrid",
+    "Deportivo Alavés": "Alaves",
+    "Elche CF": "Elche",
+    "Levante UD": "Levante",
+    "RCD Espanyol de Barcelona": "Espanyol",
+    "Real Oviedo": "Oviedo",
+    "Olympique Lyonnais": "Lyon",
+    "Olympique de Marseille": "Marseille",
+    "Paris Saint-Germain FC": "Paris Saint Germain",
+    "Racing Club de Lens": "Lens",
+    "Stade Rennais FC 1901": "Rennes",
+    "AC Pisa 1909": "Pisa",
+    "Bologna FC 1909": "Bologna",
+    "Como 1907": "Como",
+    "FC Internazionale Milano": "Inter",
+    "Parma Calcio 1913": "Parma",
+    "US Cremonese": "Cremonese",
+    "US Sassuolo Calcio": "Sassuolo",
+}
+_CLUB_STOPWORDS = {
+    "fc", "cf", "afc", "ac", "as", "us", "ud", "rc", "cd", "sv", "sc",
+    "club", "calcio", "football", "futbol", "de",
+}
 
 
 def _norm(name: str) -> str:
     replacements = str.maketrans("çğıöşüÇĞİÖŞÜ", "cgiosuCGIOSU")
     return name.translate(replacements).lower().strip()
+
+
+def _club_key(name: str) -> str:
+    clean = (
+        _norm(name)
+        .replace("&", " ")
+        .replace("-", " ")
+        .replace(".", " ")
+        .replace("'", " ")
+    )
+    tokens = [
+        token
+        for token in clean.split()
+        if not token.isdigit() and token not in _CLUB_STOPWORDS
+    ]
+    return " ".join(tokens)
+
+
+def _club_match_score(api_name: str, club_name: str) -> float:
+    target = _club_key(api_name)
+    variants = {_club_key(club_name)}
+    alias = _FOREIGN_CLUB_ALIASES.get(club_name)
+    if alias:
+        variants.add(_club_key(alias))
+
+    best = 0.0
+    for variant in variants:
+        if not variant:
+            continue
+        tsr = fuzz.token_set_ratio(target, variant)
+        plain = fuzz.ratio(target, variant)
+        best = max(best, tsr * 0.5 + plain * 0.5)
+    return best
 
 
 def _client() -> httpx.AsyncClient:
@@ -414,10 +479,22 @@ async def link_and_sync_foreign_coaches(session: AsyncSession, max_coach_request
 
             for item in teams:
                 team = item["team"]
-                target = _norm(team["name"])
                 best, best_score = None, 0.0
                 for c in candidates:
-                    score = fuzz.token_set_ratio(target, _norm(c.name))
+                    cand_norm = _club_key(c.name)
+                    # ÖNEMLİ: token_set_ratio TEK BAŞINA kısa API isimlerinde
+                    # ("Barcelona") yanılır — o isim, "RCD Espanyol de Barcelona"
+                    # gibi alakasız bir kulübün de token alt kümesi olduğu icin
+                    # HER ikisine de 100 puan verip aralarinda rastgele secim
+                    # yapar (canli olarak Barcelona/Espanyol karisikligina yol
+                    # acti). fuzz.ratio (tum string benzerligi) ile agirlikli
+                    # ortalama, uzunluk/icerik farkini cezalandirip doğru
+                    # (daha yakin) adayı ayirt eder.
+                    score = max(
+                        _club_match_score(team["name"], c.name),
+                        fuzz.token_set_ratio(_club_key(team["name"]), cand_norm) * 0.5
+                        + fuzz.ratio(_club_key(team["name"]), cand_norm) * 0.5,
+                    )
                     if score > best_score:
                         best, best_score = c, score
                 if best is not None and best_score >= _CLUB_MATCH_THRESHOLD:

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 const NAV = [
   { to: "/", label: "Ana Sayfa", end: true },
+  { to: "/oyunlar/kim-daha-iyi", label: "Oyunlar" },
   { to: "/kulupler", label: "Kulüpler" },
   { to: "/dunya-kupasi", label: "Dünya Kupası", soon: true },
   { to: "/istatistikler", label: "İstatistikler", soon: true },

@@ -50,6 +50,7 @@ export const api = {
   topAssists: (params = {}) => request(`/stats/top-assists?${qs(params)}`),
   mostValuableClubs: (params = {}) => request(`/stats/most-valuable-clubs?${qs(params)}`),
   mostValuablePlayers: (params = {}) => request(`/stats/most-valuable-players?${qs(params)}`),
+  higherLowerNext: (params = {}) => request(`/games/higher-lower/next?${qs(params)}`),
 };
 
 function qs(params) {
