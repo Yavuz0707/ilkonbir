@@ -1,0 +1,174 @@
+@import "tailwindcss";
+
+@theme {
+  /* --- Gece maçı paleti --- */
+  --color-night: #071810; /* sayfa zemini */
+  --color-deep: #0d2418; /* panel/kart zemini */
+  --color-mid: #1b4332; /* kenarlık, ayraç */
+  --color-turf: #2f5d43; /* saha/çim detayları */
+  --color-moss: #52b788; /* ikincil yeşil, ikon/detay */
+  --color-neon: #6bffa0; /* birincil vurgu: aksiyon, pozitif */
+  --color-gold: #f2c14e; /* yıldız oyuncu vurgusu — cimri kullan */
+  --color-ember: #e07856; /* hata/uyarı, düşük doygunluk */
+  --color-ink: #eaf6ee; /* birincil metin */
+  --color-ink-muted: #9fbfac; /* ikincil metin */
+  --color-ink-faint: #5e7f6c; /* en soluk metin/etiket */
+
+  --font-display: "Chakra Petch", "Manrope", sans-serif;
+  --font-sans: "Manrope", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --shadow-glow-sm: 0 0 12px rgba(107, 255, 160, 0.22);
+  --shadow-glow: 0 0 26px rgba(107, 255, 160, 0.3);
+  --shadow-lift: 0 14px 34px rgba(0, 0, 0, 0.45);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-night);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Eyebrow: skorbord etiketi */
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* Klavye odağı: neon ring, her etkileşimli öğede görünür */
+:focus-visible {
+  outline: 2px solid var(--color-neon);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Stadyum flood-light: tek, yavaş katman ---- */
+@keyframes floodlight-drift {
+  0% {
+    transform: translate(-6%, -3%) scale(1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translate(5%, 4%) scale(1.12);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-6%, -3%) scale(1);
+    opacity: 0.45;
+  }
+}
+
+.floodlight {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  filter: blur(8px);
+  animation: floodlight-drift 16s ease-in-out infinite;
+}
+
+/* ---- Seçili oyuncu kartı: neon nabız ---- */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(107, 255, 160, 0.35), 0 0 24px rgba(107, 255, 160, 0.14);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(107, 255, 160, 0.6), 0 0 42px rgba(107, 255, 160, 0.28);
+  }
+}
+
+.glow-pulse {
+  animation: glow-pulse 1.6s ease-in-out infinite;
+}
+
+/* ---- Skeleton yükleme ---- */
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(120deg, var(--color-deep), #12331f, var(--color-deep));
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+/* ---- Taktik tahtası köşe braketleri (kart hover) ---- */
+.bracket-corners {
+  position: relative;
+}
+.bracket-corners::before,
+.bracket-corners::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--color-neon);
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+.bracket-corners::before {
+  top: 8px;
+  left: 8px;
+  border-right: none;
+  border-bottom: none;
+  transform: translate(4px, 4px);
+}
+.bracket-corners::after {
+  bottom: 8px;
+  right: 8px;
+  border-left: none;
+  border-top: none;
+  transform: translate(-4px, -4px);
+}
+.bracket-corners:hover::before,
+.bracket-corners:hover::after,
+.bracket-corners:focus-visible::before,
+.bracket-corners:focus-visible::after {
+  opacity: 1;
+  transform: translate(0, 0);
+}
+
+/* İnce scrollbar (modal listeleri) */
+.thin-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-mid);
+  border-radius: 3px;
+}
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---- Hareket azaltma tercihi ---- */
+@media (prefers-reduced-motion: reduce) {
+  .floodlight,
+  .glow-pulse,
+  .skeleton {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

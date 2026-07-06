@@ -1,0 +1,30 @@
+# PostgreSQL + transfermarkt-api servisleri.
+# Gelistirmede backend SQLite ile de calisir; Postgres'e gecmek icin
+# backend/.env icinde DATABASE_URL'i asagidaki postgres baglantisiyla degistirin.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ilkonbir
+      POSTGRES_PASSWORD: ilkonbir
+      POSTGRES_DB: ilkonbir
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ilkonbir"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Piyasa degerleri icin scraping tabanli API (felipeall/transfermarkt-api)
+  transfermarkt-api:
+    build:
+      context: ./transfermarkt-api
+    ports:
+      - "8001:8000"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
