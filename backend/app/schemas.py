@@ -102,6 +102,8 @@ class SyncRequest(BaseModel):
     market_values: bool = True
     top_stats: bool = False
     transfers: bool = False
+    trophies: bool = False
+    trophy_limit: int = 25
     football_data_org: bool = False
     football_data_org_clubs: bool = False
 
@@ -155,6 +157,40 @@ class GameRoundOut(BaseModel):
 class LogoQuizRoundOut(BaseModel):
     correct_id: int
     options: list[ClubMini]
+
+
+class TransferRouteClubOut(BaseModel):
+    name: str
+    logo_url: str | None = None
+    start_date: str | None = None
+    end_date: str | None = None
+
+
+class TransferRouteOptionOut(BaseModel):
+    id: int
+    name: str
+    photo_url: str | None = None
+    position: str | None = None
+    club_name: str | None = None
+    club_logo: str | None = None
+
+
+class TransferRouteRoundOut(BaseModel):
+    route: list[TransferRouteClubOut]
+    options: list[TransferRouteOptionOut]
+    correct_id: int
+    correct_name: str
+
+
+class TrophyOut(ORMModel):
+    id: int
+    holder_type: str
+    holder_id: int
+    competition_name: str
+    season: str | None = None
+    place: str | None = None
+    club_name: str | None = None
+    country: str | None = None
 
 
 class ClubValueOut(BaseModel):

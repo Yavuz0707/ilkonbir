@@ -26,7 +26,7 @@ export default function BenchList({ club, lineup, onPickPlayer, activePlayerId }
   }, [club, onPitchIds]);
 
   return (
-    <div className="flex min-h-0 flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <div className="mb-2 flex items-baseline justify-between">
         <p className="eyebrow">Yedek Kadro</p>
         <span className="font-mono text-xs text-ink-faint">{bench.length}</span>
@@ -37,7 +37,7 @@ export default function BenchList({ club, lineup, onPickPlayer, activePlayerId }
           Tüm kadro sahada.
         </p>
       ) : (
-        <ul className="thin-scroll -mr-1 max-h-[42vh] space-y-1 overflow-y-auto pr-1 lg:max-h-none">
+        <ul className="thin-scroll -mr-1 max-h-[42vh] space-y-1 overflow-y-auto pr-1 lg:max-h-none lg:flex-1">
           {bench.map((p) => {
             const activePlace = p.id === activePlayerId;
             return (

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { api } from "../api";
 import PlayerSearchResults from "./PlayerSearchResults.jsx";
+import TrophyList from "./TrophyList.jsx";
 
 const ROLE_ORDER = { GK: 0, DF: 1, MF: 2, FW: 3 };
 
@@ -103,6 +104,19 @@ export default function PlayerSwapModal({ open, onClose, slot, club, lineup, onS
                 ✕
               </button>
             </div>
+
+            {/* Sekmeler */}
+            {slot?.player && (
+              <div className="border-b border-mid/50 px-4 py-3">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="eyebrow">Kupa Vitrini</p>
+                    <p className="text-xs text-ink-muted">{slot.player.name}</p>
+                  </div>
+                </div>
+                <TrophyList holderType="player" holderId={slot.player.id} compact />
+              </div>
+            )}
 
             {/* Sekmeler */}
             <div className="flex gap-1 border-b border-mid/50 px-4 pt-2">

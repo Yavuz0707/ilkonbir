@@ -3,7 +3,12 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException
 from ..config import get_settings
 from ..database import async_session_maker
 from ..schemas import SyncRequest, SyncResult
-from ..services.api_football import sync_clubs_and_players, sync_top_stats, sync_transfers
+from ..services.api_football import (
+    sync_clubs_and_players,
+    sync_top_stats,
+    sync_transfers,
+    sync_trophies,
+)
 from ..services.football_data_org import sync_football_data_org_scorers, sync_foreign_clubs
 from ..services.transfermarkt import sync_market_values
 
@@ -21,6 +26,8 @@ async def _run_sync(
     market_values: bool,
     top_stats: bool,
     transfers: bool,
+    trophies: bool,
+    trophy_limit: int,
     football_data_org: bool,
     football_data_org_clubs: bool,
 ) -> None:
@@ -35,6 +42,8 @@ async def _run_sync(
             await sync_top_stats(session)
         if transfers:
             await sync_transfers(session)
+        if trophies:
+            await sync_trophies(session, limit=trophy_limit)
         if football_data_org:
             await sync_football_data_org_scorers(session)
 
@@ -48,6 +57,8 @@ async def trigger_sync(payload: SyncRequest, background: BackgroundTasks):
         payload.market_values,
         payload.top_stats,
         payload.transfers,
+        payload.trophies,
+        payload.trophy_limit,
         payload.football_data_org,
         payload.football_data_org_clubs,
     )

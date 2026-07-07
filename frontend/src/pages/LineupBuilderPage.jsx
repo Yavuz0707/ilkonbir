@@ -190,7 +190,7 @@ export default function LineupBuilderPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto min-h-screen max-w-6xl px-4 pb-28 pt-6"
+      className="mx-auto min-h-screen max-w-6xl px-4 pb-28 pt-6 lg:h-[calc(100vh-73px)] lg:min-h-0 lg:overflow-hidden lg:pb-4"
     >
       {/* Hata bildirimi */}
       <AnimatePresence>
@@ -207,13 +207,13 @@ export default function LineupBuilderPage() {
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_300px] lg:grid-rows-[auto_minmax(0,1fr)] lg:gap-6">
+      <div className="grid grid-cols-1 gap-5 lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_300px] lg:grid-rows-[auto_minmax(0,1fr)] lg:gap-6">
         {/* Saha — masaüstünde solda, iki satırı kaplar */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.45, ease: "easeOut" }}
-          className="relative order-2 mx-auto w-full max-w-lg lg:order-none lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:h-[min(82vh,880px)] lg:max-w-none"
+          className="relative order-2 mx-auto w-full max-w-lg lg:order-none lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:h-full lg:max-w-none"
           style={{ aspectRatio: "68 / 100" }}
         >
           <PitchBackground />
@@ -259,7 +259,7 @@ export default function LineupBuilderPage() {
         </motion.div>
 
         {/* Rail üst: kulüp kimliği + formasyon */}
-        <div className="order-1 space-y-5 lg:order-none lg:col-start-2 lg:row-start-1">
+        <div className="order-1 space-y-5 lg:order-none lg:col-start-2 lg:row-start-1 lg:min-h-0">
           <ClubHeader club={club} />
           <FormationSelector
             formations={formations}
@@ -270,7 +270,7 @@ export default function LineupBuilderPage() {
         </div>
 
         {/* Rail alt: yedek kadro */}
-        <div className="order-3 min-h-0 lg:order-none lg:col-start-2 lg:row-start-2">
+        <div className="order-3 min-h-0 lg:order-none lg:col-start-2 lg:row-start-2 lg:overflow-hidden">
           <BenchList
             club={club}
             lineup={lineup}

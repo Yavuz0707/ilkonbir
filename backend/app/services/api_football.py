@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..config import get_settings
-from ..models import Club, Coach, LineupSlot, Player, PlayerSeasonStat, Transfer, utcnow
+from ..models import Club, Coach, LineupSlot, Player, PlayerSeasonStat, Transfer, Trophy, utcnow
 from .stat_linking import build_id_maps, link_player
 
 logger = logging.getLogger(__name__)
@@ -445,6 +445,7 @@ async def _store_transfers(session: AsyncSession, item: dict, since: str) -> int
             continue
         session.add(
             Transfer(
+                source="api_football",
                 external_player_id=ext,
                 player_id=linked,
                 player_name=player.get("name") or "?",
@@ -455,6 +456,128 @@ async def _store_transfers(session: AsyncSession, item: dict, since: str) -> int
             )
         )
         stored += 1
+    return stored
+
+
+async def sync_trophies(
+    session: AsyncSession, holder_type: str = "all", limit: int = 25
+) -> str:
+    """Oyuncu / teknik direktor kupa gecmisini API-Football /trophies'ten ceker.
+
+    Bu is holder basina bir API istegi harcar. Bu yuzden kademeli calismasi icin
+    `limit` kucuk tutulur ve daha once denenen holder'lar `trophies_synced_at`
+    ile atlanir.
+    """
+    settings = get_settings()
+    if not settings.api_football_key:
+        return "API_FOOTBALL_KEY yok, kupa sync atlandi."
+    if holder_type not in {"all", "player", "coach"}:
+        raise ValueError("holder_type all/player/coach olmali")
+
+    synced = stored = 0
+    async with _client() as client:
+        if holder_type in {"all", "player"} and synced < limit:
+            players = (
+                await session.execute(
+                    select(Player)
+                    .where(
+                        Player.external_api_football_id.isnot(None),
+                        Player.trophies_synced_at.is_(None),
+                    )
+                    .order_by(Player.market_value.desc().nulls_last(), Player.id)
+                    .limit(limit - synced)
+                )
+            ).scalars().all()
+            for player in players:
+                try:
+                    rows = await _get(client, "/trophies", {"player": player.external_api_football_id})
+                    stored += await _store_trophies(
+                        session,
+                        holder_type="player",
+                        holder_id=player.id,
+                        external_holder_id=player.external_api_football_id,
+                        rows=rows,
+                    )
+                    player.trophies_synced_at = utcnow()
+                    synced += 1
+                    await session.commit()
+                except httpx.HTTPError as exc:
+                    logger.warning("Oyuncu kupa sync atlandi (%s): %s", player.name, exc)
+                    await session.rollback()
+                await asyncio.sleep(15)
+
+        if holder_type in {"all", "coach"} and synced < limit:
+            coaches = (
+                await session.execute(
+                    select(Coach)
+                    .where(Coach.external_id.isnot(None), Coach.trophies_synced_at.is_(None))
+                    .order_by(Coach.id)
+                    .limit(limit - synced)
+                )
+            ).scalars().all()
+            for coach in coaches:
+                try:
+                    rows = await _get(client, "/trophies", {"coach": coach.external_id})
+                    stored += await _store_trophies(
+                        session,
+                        holder_type="coach",
+                        holder_id=coach.id,
+                        external_holder_id=coach.external_id,
+                        rows=rows,
+                    )
+                    coach.trophies_synced_at = utcnow()
+                    synced += 1
+                    await session.commit()
+                except httpx.HTTPError as exc:
+                    logger.warning("Koc kupa sync atlandi (%s): %s", coach.name, exc)
+                    await session.rollback()
+                await asyncio.sleep(15)
+
+    return f"{synced} kisi icin kupa sorgulandi, {stored} kupa kaydi yazildi."
+
+
+async def _store_trophies(
+    session: AsyncSession,
+    holder_type: str,
+    holder_id: int,
+    external_holder_id: int | None,
+    rows: list[dict],
+) -> int:
+    stored = 0
+    for item in rows:
+        competition_name = item.get("league")
+        if not competition_name:
+            continue
+        season = item.get("season")
+        place = item.get("place")
+        team = item.get("team") or {}
+        club_name = team.get("name") if isinstance(team, dict) else None
+        row = (
+            await session.execute(
+                select(Trophy).where(
+                    Trophy.holder_type == holder_type,
+                    Trophy.holder_id == holder_id,
+                    Trophy.competition_name == competition_name,
+                    Trophy.season == season,
+                    Trophy.place == place,
+                    Trophy.club_name == club_name,
+                )
+            )
+        ).scalar_one_or_none()
+        if row is None:
+            row = Trophy(
+                holder_type=holder_type,
+                holder_id=holder_id,
+                competition_name=competition_name,
+                season=season,
+                place=place,
+                club_name=club_name,
+            )
+            session.add(row)
+            stored += 1
+        row.external_holder_id = external_holder_id
+        row.country = item.get("country")
+        row.updated_at = utcnow()
     return stored
 
 

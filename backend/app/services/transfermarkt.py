@@ -14,12 +14,12 @@ from datetime import datetime, timezone
 
 import httpx
 from rapidfuzz import fuzz
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..config import get_settings
-from ..models import Club, Player
+from ..models import Club, Player, Transfer
 
 logger = logging.getLogger(__name__)
 
@@ -144,6 +144,17 @@ def _parse_value(raw) -> int | None:
         return None
 
 
+def _item_key(item: dict, snake: str, camel: str):
+    if snake in item:
+        return item.get(snake)
+    return item.get(camel)
+
+
+def _club_field(item: dict, snake: str, camel: str) -> dict:
+    value = _item_key(item, snake, camel)
+    return value if isinstance(value, dict) else {}
+
+
 async def sync_market_values(session: AsyncSession, club_ids: list[int] | None = None) -> str:
     """Tum kuluplerin (ya da verilen `club_ids` alt kumesinin) oyuncularina
     transfermarkt piyasa degerlerini yazar.
@@ -209,6 +220,84 @@ async def sync_market_values(session: AsyncSession, club_ids: list[int] | None =
                 await session.rollback()
 
     return f"{updated} oyuncunun piyasa degeri guncellendi, {skipped} oyuncu eslesmedi."
+
+
+async def sync_transfer_histories(session: AsyncSession, limit: int = 80) -> str:
+    """Transfermarkt'tan oyuncularin tum profesyonel transfer gecmisini ceker.
+
+    Bu is oyuncu basina bir scraping istegi harcar. Bu yuzden partili calisir ve
+    daha once denenen oyunculari `transfer_history_synced_at` ile atlar.
+    """
+    settings = get_settings()
+    synced = stored = skipped = 0
+    players = (
+        await session.execute(
+            select(Player)
+            .options(selectinload(Player.club))
+            .where(Player.transfermarkt_id.isnot(None), Player.transfer_history_synced_at.is_(None))
+            .order_by(Player.market_value.desc().nulls_last(), Player.id)
+            .limit(limit)
+        )
+    ).scalars().all()
+
+    async with httpx.AsyncClient(base_url=settings.transfermarkt_api_url, timeout=60) as client:
+        for player in players:
+            try:
+                resp = await client.get(f"/players/{player.transfermarkt_id}/transfers")
+                if resp.status_code != 200:
+                    skipped += 1
+                    player.transfer_history_synced_at = datetime.now(timezone.utc)
+                    await session.commit()
+                    continue
+
+                data = resp.json()
+                rows = data.get("transfers") or []
+                await session.execute(
+                    delete(Transfer).where(
+                        Transfer.source == "transfermarkt",
+                        Transfer.external_player_id == int(player.transfermarkt_id),
+                    )
+                )
+                await session.flush()
+                seen_keys: set[tuple[str, str]] = set()
+                for item in rows:
+                    from_club = _club_field(item, "club_from", "clubFrom")
+                    to_club = _club_field(item, "club_to", "clubTo")
+                    date = _item_key(item, "date", "date")
+                    if not date or not to_club.get("name"):
+                        continue
+                    dedupe_key = (
+                        str(date),
+                        str(to_club.get("name") or ""),
+                    )
+                    if dedupe_key in seen_keys:
+                        continue
+                    seen_keys.add(dedupe_key)
+                    session.add(
+                        Transfer(
+                            source="transfermarkt",
+                            external_player_id=int(player.transfermarkt_id),
+                            external_transfer_id=str(_item_key(item, "id", "id") or ""),
+                            external_from_club_id=str(from_club.get("id") or "") or None,
+                            external_to_club_id=str(to_club.get("id") or "") or None,
+                            player_id=player.id,
+                            player_name=player.name,
+                            from_club=from_club.get("name"),
+                            to_club=to_club.get("name"),
+                            transfer_date=str(date),
+                            fee=str(_item_key(item, "fee", "fee") or _item_key(item, "season", "season") or ""),
+                        )
+                    )
+                    stored += 1
+                player.transfer_history_synced_at = datetime.now(timezone.utc)
+                await session.commit()
+                synced += 1
+                await asyncio.sleep(1)
+            except httpx.HTTPError as exc:
+                logger.warning("Transfer gecmisi sync basarisiz (%s): %s", player.name, exc)
+                await session.rollback()
+
+    return f"{synced} oyuncunun transfer gecmisi cekildi, {stored} transfer yazildi, {skipped} oyuncu atlandi."
 
 
 def _tokens(name: str) -> list[str]:

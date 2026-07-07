@@ -7,6 +7,7 @@ import ComingSoonPage from "./pages/ComingSoonPage.jsx";
 import GamesPage from "./pages/GamesPage.jsx";
 import HigherLowerGamePage from "./pages/HigherLowerGamePage.jsx";
 import LogoQuizGamePage from "./pages/LogoQuizGamePage.jsx";
+import TransferRouteGamePage from "./pages/TransferRouteGamePage.jsx";
 import LineupBuilderPage from "./pages/LineupBuilderPage.jsx";
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/oyunlar" element={<GamesPage />} />
           <Route path="/oyunlar/kim-daha-iyi" element={<HigherLowerGamePage />} />
           <Route path="/oyunlar/logo-bulmaca" element={<LogoQuizGamePage />} />
+          <Route path="/oyunlar/transfer-rotasi" element={<TransferRouteGamePage />} />
           <Route path="/dunya-kupasi" element={<ComingSoonPage title="Dünya Kupası" />} />
           <Route path="/istatistikler" element={<ComingSoonPage title="İstatistikler" />} />
           <Route path="/oyuncular" element={<ComingSoonPage title="Oyuncular" />} />

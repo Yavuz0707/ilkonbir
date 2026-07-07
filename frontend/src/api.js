@@ -52,6 +52,9 @@ export const api = {
   mostValuablePlayers: (params = {}) => request(`/stats/most-valuable-players?${qs(params)}`),
   higherLowerNext: (params = {}) => request(`/games/higher-lower/next?${qs(params)}`),
   logoQuizNext: (params = {}) => request(`/games/logo-quiz/next?${qs(params)}`),
+  transferRouteNext: () => request("/games/transfer-route/next"),
+  playerTrophies: (playerId) => request(`/players/${playerId}/trophies`),
+  coachTrophies: (coachId) => request(`/clubs/coaches/${coachId}/trophies`),
 };
 
 function qs(params) {

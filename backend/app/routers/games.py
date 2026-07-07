@@ -1,4 +1,5 @@
 import random
+import unicodedata
 from dataclasses import dataclass
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -7,20 +8,68 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..database import get_session
-from ..models import Club, Player, PlayerSeasonStat
-from ..schemas import ClubMini, GameCardOut, GameRoundOut, LogoQuizRoundOut
+from ..models import Club, Player, PlayerSeasonStat, Transfer
+from ..schemas import (
+    ClubMini,
+    GameCardOut,
+    GameRoundOut,
+    LogoQuizRoundOut,
+    TransferRouteClubOut,
+    TransferRouteOptionOut,
+    TransferRouteRoundOut,
+)
 
 router = APIRouter(prefix="/games", tags=["games"])
 
 _WINDOW = 15
 _MAX_PAIR_ATTEMPTS = 50
 _LOGO_QUIZ_OPTION_COUNT = 4
+_TRANSFER_ROUTE_OPTION_COUNT = 4
 
 
 @dataclass(frozen=True)
 class _Candidate:
     id: int
     value: int
+
+
+def _norm_name(name: str | None) -> str:
+    if not name:
+        return ""
+    normalized = (
+        unicodedata.normalize("NFKD", name.replace("ı", "i").replace("İ", "I"))
+        .encode("ascii", "ignore")
+        .decode("ascii")
+        .lower()
+        .replace("&", " ")
+        .replace(".", " ")
+        .replace("-", " ")
+        .strip()
+    )
+    return " ".join(normalized.split())
+    replacements = str.maketrans("çğıöşüÇĞİÖŞÜ", "cgiosuCGIOSU")
+    return (
+        name.translate(replacements)
+        .lower()
+        .replace("&", " ")
+        .replace(".", " ")
+        .replace("-", " ")
+        .strip()
+    )
+
+
+def _same_club_name(left: str | None, right: str | None) -> bool:
+    left_norm = _norm_name(left)
+    right_norm = _norm_name(right)
+    if not left_norm or not right_norm:
+        return False
+    if left_norm == right_norm:
+        return True
+    left_tokens = set(left_norm.split())
+    right_tokens = set(right_norm.split())
+    return bool(left_tokens and right_tokens) and (
+        left_tokens.issubset(right_tokens) or right_tokens.issubset(left_tokens)
+    )
 
 
 async def _ranked_candidates(session: AsyncSession, category: str) -> list[_Candidate]:
@@ -130,6 +179,147 @@ async def _card_for(
     )
 
 
+def _club_option(player: Player) -> TransferRouteOptionOut:
+    return TransferRouteOptionOut(
+        id=player.id,
+        name=player.name,
+        photo_url=player.photo_url,
+        position=player.position,
+        club_name=player.club.name if player.club else None,
+        club_logo=player.club.logo_url if player.club else None,
+    )
+
+
+async def _transfer_route_for(
+    session: AsyncSession,
+    player: Player,
+    club_logos: dict[str, str | None],
+    tm_club_logos: dict[str, str | None],
+) -> list[TransferRouteClubOut]:
+    has_transfermarkt_history = (
+        await session.execute(
+            select(Transfer.id)
+            .where(Transfer.player_id == player.id, Transfer.source == "transfermarkt")
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    source_filter = "transfermarkt" if has_transfermarkt_history is not None else "api_football"
+    transfers = (
+        await session.execute(
+            select(Transfer)
+            .where(Transfer.player_id == player.id, Transfer.source == source_filter)
+            .order_by(Transfer.transfer_date.asc().nulls_last(), Transfer.id.asc())
+        )
+    ).scalars().all()
+
+    route: list[TransferRouteClubOut] = []
+    for transfer in transfers:
+        date = transfer.transfer_date
+        if transfer.from_club and not route:
+            route.append(
+                TransferRouteClubOut(
+                    name=transfer.from_club,
+                    logo_url=tm_club_logos.get(transfer.external_from_club_id or "")
+                    or club_logos.get(_norm_name(transfer.from_club)),
+                    end_date=date,
+                )
+            )
+        elif route and date and route[-1].end_date is None:
+            route[-1].end_date = date
+
+        if not transfer.to_club:
+            continue
+        if route and _same_club_name(route[-1].name, transfer.to_club):
+            route[-1].start_date = route[-1].start_date or date
+            route[-1].end_date = None
+            continue
+        route.append(
+            TransferRouteClubOut(
+                name=transfer.to_club,
+                logo_url=tm_club_logos.get(transfer.external_to_club_id or "")
+                or club_logos.get(_norm_name(transfer.to_club)),
+                start_date=date,
+            )
+        )
+
+    current_name = player.club.name if player.club else None
+    current_tm_id = str(player.club.transfermarkt_id) if player.club and player.club.transfermarkt_id else None
+    last_to_tm_id = str(transfers[-1].external_to_club_id) if transfers and transfers[-1].external_to_club_id else None
+    current_matches_last = bool(current_tm_id and last_to_tm_id and current_tm_id == last_to_tm_id)
+    if current_name and route and (
+        _same_club_name(route[-1].name, current_name) or current_matches_last
+    ):
+        route[-1].logo_url = route[-1].logo_url or (player.club.logo_url if player.club else None)
+    if current_name and (
+        not route
+        or (
+            not _same_club_name(route[-1].name, current_name)
+            and not current_matches_last
+        )
+    ):
+        if route and route[-1].end_date is None:
+            route[-1].end_date = transfers[-1].transfer_date if transfers else None
+        route.append(
+            TransferRouteClubOut(
+                name=current_name,
+                logo_url=player.club.logo_url if player.club else club_logos.get(_norm_name(current_name)),
+                start_date=transfers[-1].transfer_date if transfers else None,
+            )
+        )
+
+    cleaned: list[TransferRouteClubOut] = []
+    for item in route:
+        if not item.name:
+            continue
+        if cleaned and _same_club_name(cleaned[-1].name, item.name):
+            cleaned[-1].end_date = item.end_date
+            cleaned[-1].logo_url = cleaned[-1].logo_url or item.logo_url
+            continue
+        cleaned.append(item)
+    return cleaned
+
+
+async def _transfer_route_options(
+    session: AsyncSession, correct: Player
+) -> list[TransferRouteOptionOut]:
+    def base_stmt():
+        return (
+            select(Player)
+            .options(selectinload(Player.club))
+            .where(Player.id != correct.id)
+            .order_by(func.random())
+        )
+
+    picked: list[Player] = []
+    seen = {correct.id}
+
+    queries = [
+        base_stmt()
+        .join(Club, Player.club_id == Club.id, isouter=True)
+        .where(Player.position == correct.position, Club.league == (correct.club.league if correct.club else None))
+        .limit(_TRANSFER_ROUTE_OPTION_COUNT - 1),
+        base_stmt().where(Player.position == correct.position).limit(_TRANSFER_ROUTE_OPTION_COUNT - 1),
+        base_stmt().limit(_TRANSFER_ROUTE_OPTION_COUNT - 1),
+    ]
+    for stmt in queries:
+        for player in (await session.execute(stmt)).scalars().all():
+            if player.id in seen:
+                continue
+            picked.append(player)
+            seen.add(player.id)
+            if len(picked) >= _TRANSFER_ROUTE_OPTION_COUNT - 1:
+                break
+        if len(picked) >= _TRANSFER_ROUTE_OPTION_COUNT - 1:
+            break
+
+    if len(picked) < _TRANSFER_ROUTE_OPTION_COUNT - 1:
+        raise HTTPException(404, "Transfer rotasi icin yeterli oyuncu yok")
+
+    options = [_club_option(correct), *[_club_option(player) for player in picked]]
+    random.shuffle(options)
+    return options
+
+
 @router.get("/higher-lower/next", response_model=GameRoundOut)
 async def next_round(
     session: AsyncSession = Depends(get_session),
@@ -197,3 +387,60 @@ async def logo_quiz_next(
         correct_id=correct.id,
         options=[ClubMini.model_validate(club) for club in options],
     )
+
+
+@router.get("/transfer-route/next", response_model=TransferRouteRoundOut)
+async def transfer_route_next(session: AsyncSession = Depends(get_session)):
+    player_ids = (
+        await session.execute(
+            select(Transfer.player_id)
+            .where(Transfer.player_id.isnot(None), Transfer.source == "transfermarkt")
+            .group_by(Transfer.player_id)
+            .having(func.count(Transfer.id) >= 2)
+            .order_by(func.random())
+            .limit(300)
+        )
+    ).scalars().all()
+    if not player_ids:
+        player_ids = (
+            await session.execute(
+                select(Transfer.player_id)
+                .where(Transfer.player_id.isnot(None))
+                .group_by(Transfer.player_id)
+                .having(func.count(Transfer.id) >= 1)
+                .order_by(func.random())
+                .limit(300)
+            )
+        ).scalars().all()
+    if not player_ids:
+        raise HTTPException(404, "Transfer rotasi icin yeterli transfer verisi yok")
+
+    clubs = (await session.execute(select(Club))).scalars().all()
+    club_logos = {_norm_name(club.name): club.logo_url for club in clubs}
+    tm_club_logos = {
+        str(club.transfermarkt_id): club.logo_url
+        for club in clubs
+        if club.transfermarkt_id is not None
+    }
+
+    for player_id in player_ids:
+        player = (
+            await session.execute(
+                select(Player).options(selectinload(Player.club)).where(Player.id == player_id)
+            )
+        ).scalar_one_or_none()
+        if player is None:
+            continue
+        route = await _transfer_route_for(session, player, club_logos, tm_club_logos)
+        distinct_clubs = {_norm_name(item.name) for item in route}
+        if len(distinct_clubs) < 3:
+            continue
+        options = await _transfer_route_options(session, player)
+        return TransferRouteRoundOut(
+            route=route,
+            options=options,
+            correct_id=player.id,
+            correct_name=player.name,
+        )
+
+    raise HTTPException(404, "Transfer rotasi icin yeterli uzunlukta oyuncu gecmisi yok")

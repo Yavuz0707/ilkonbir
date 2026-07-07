@@ -18,6 +18,14 @@ const GAMES = [
     description:
       "Ekrandaki kulüp armasını 4 şık arasından bul. Her doğru +10 puan — 10 turda kaç puan toplayabilirsin?",
   },
+  {
+    to: "/oyunlar/transfer-rotasi",
+    title: "Transfer Rotası",
+    tagline: "Kariyer İzi",
+    icon: "TR",
+    description:
+      "Gizli oyuncunun kulüp yolculuğunu takip et. Logolar ve tarih aralıkları ipucun; doğru ismi buldukça serini uzat.",
+  },
 ];
 
 export default function GamesPage() {
@@ -39,7 +47,7 @@ export default function GamesPage() {
         </p>
       </header>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {GAMES.map((game, i) => (
           <motion.div
             key={game.to}

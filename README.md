@@ -1,35 +1,52 @@
-# ⚽ İlk Onbir — Fantasy Lineup Builder
+# İlk Onbir
 
-Dünya kulüplerinin **gerçek kadrolarıyla** ilk onbir kurma uygulaması. Bir takım seç,
-gerçek dizilişini sahada gör, oyuncuları yedeklerle ya da başka takımların yıldızlarıyla
-değiştir — toplam kadro piyasa değeri altta canlı olarak güncellensin.
+Fantasy football lineup builder and mini-game hub. Pick a real club, inspect its
+auto-built starting XI on a pitch, swap players from the bench or other clubs,
+change formations, and watch total squad market value update live.
 
-| Katman | Teknoloji |
+The app is guest/session based. There is no auth; the browser stores each club's
+lineup id in `sessionStorage`.
+
+## Stack
+
+| Layer | Tech |
 | --- | --- |
-| Backend | Python 3.12+, FastAPI, SQLAlchemy (async), Alembic, APScheduler |
-| Veritabanı | SQLite (geliştirme) / PostgreSQL (Docker) |
-| Frontend | React (Vite), TailwindCSS v4, Framer Motion |
-| Veri | API-Football (kadrolar, logolar) + transfermarkt-api (piyasa değerleri, rapidfuzz eşleştirme) |
+| Backend | FastAPI, SQLAlchemy async, Alembic, APScheduler |
+| Database | SQLite for local development, PostgreSQL via Docker |
+| Frontend | React, Vite, Tailwind CSS v4, Framer Motion |
+| Data | API-Football, football-data.org, local transfermarkt-api service |
 
-## Hızlı Başlangıç (API anahtarı gerekmez)
+## Features
 
-Depo, 10 büyük kulübün (Galatasaray, Fenerbahçe, Real Madrid, Barcelona, Man City,
-Liverpool, Arsenal, Bayern, PSG, Inter) 2025-26 kadrolarını içeren seed verisiyle gelir.
+- Club picker with real squads, logos, coaches and player photos.
+- Formation-aware lineup builder: 4-3-3, 4-4-2, 4-2-3-1, 3-5-2, 3-4-3.
+- Bench/player swap flow with optimistic UI and live squad value.
+- Desktop lineup layout keeps the pitch fixed while the bench scrolls internally.
+- Games hub at `/oyunlar`:
+  - `Kim Daha İyi?`: higher/lower by market value, synced goals or synced assists.
+  - `Logo Bulmaca`: guess the club crest in 10 rounds.
+  - `Transfer Rotası`: guess the hidden player from a chronological club route.
+- Player and coach trophy showcase, synced from API-Football `/trophies`.
+- Transfer-route data can use full Transfermarkt transfer history, not only recent
+  API-Football transfer records.
 
-### 1. Backend
+## Quick Start
+
+### Backend
 
 ```powershell
 cd backend
 python -m venv .venv
 .\.venv\Scripts\pip install -r requirements.txt
-copy .env.example .env
-.\.venv\Scripts\python -m app.seed          # demo verisini yükler
-.\.venv\Scripts\python -m uvicorn app.main:app --reload
+.\.venv\Scripts\python -m app.seed
+.\.venv\Scripts\python -m uvicorn app.main:app --reload --port 8000
 ```
 
-API: http://localhost:8000 — Swagger: http://localhost:8000/docs
+API: http://localhost:8000
 
-### 2. Frontend
+Swagger: http://localhost:8000/docs
+
+### Frontend
 
 ```powershell
 cd frontend
@@ -37,73 +54,168 @@ npm install
 npm run dev
 ```
 
-Uygulama: http://localhost:5173
+App: http://localhost:5173
 
-## Gerçek Veriyle Çalıştırma
-
-### API-Football (kadrolar, logolar, fotoğraflar)
-
-1. [api-football.com](https://www.api-football.com/) üzerinden ücretsiz anahtar alın.
-2. `backend/.env` içinde `API_FOOTBALL_KEY=...` girin; ligleri `API_FOOTBALL_LEAGUES`
-   ile seçin (`203`=Süper Lig, `39`=Premier League, `140`=La Liga, `78`=Bundesliga,
-   `135`=Serie A, `61`=Ligue 1).
-3. Senkronizasyonu tetikleyin:
+### Optional Services
 
 ```powershell
-curl -X POST http://localhost:8000/admin/sync -H "Content-Type: application/json" -d '{"clubs": true, "market_values": false}'
+docker compose up -d db transfermarkt-api
 ```
 
-> Ücretsiz plan rate-limited'dır; tüm veriler DB'de saklanır, kullanıcı istekleri asla
-> canlı API'ye gitmez. `ENABLE_SCHEDULER=true` ile her gece otomatik senkronizasyon açılır.
-
-### transfermarkt-api (piyasa değerleri)
+Use PostgreSQL by setting:
 
 ```powershell
-docker compose up -d transfermarkt-api
-curl -X POST http://localhost:8000/admin/sync -H "Content-Type: application/json" -d '{"clubs": false, "market_values": true}'
+DATABASE_URL=postgresql+asyncpg://ilkonbir:ilkonbir@localhost:5432/ilkonbir
 ```
 
-Oyuncular, isim benzerliği (rapidfuzz `token_set_ratio`) + kulüp kontrolüyle
-Transfermarkt kayıtlarına eşleştirilir. Scraping tabanlı bir servis olduğu için
-istekler kulüp başına aralıklı atılır ve yalnızca kişisel/eğitim amaçlı kullanım
-hedeflenir.
-
-### PostgreSQL'e geçiş
+Then run:
 
 ```powershell
-docker compose up -d db
-# backend/.env:
-# DATABASE_URL=postgresql+asyncpg://ilkonbir:ilkonbir@localhost:5432/ilkonbir
 cd backend
 .\.venv\Scripts\alembic upgrade head
 .\.venv\Scripts\python -m app.seed
 ```
 
-## API Özeti
+## Data Sources
 
+### API-Football
+
+Used for Süper Lig club/squad/coach sync, player and coach trophies, recent
+transfers, and selected goal/assist leaderboards.
+
+Important notes:
+
+- Club sync league list and stat league list are intentionally separate.
+- Free-plan top scorer/top assist data is limited to seasons 2022-2024.
+- `/players/squads` and `/coachs` are not season-gated in the same way.
+- Trophy sync is request-heavy because it calls one endpoint per player/coach.
+
+### football-data.org
+
+Used for current foreign league club/squad data and scorer data for:
+
+- Premier League
+- La Liga
+- Bundesliga
+- Serie A
+- Ligue 1
+- Champions League scorer data
+
+Always pass an explicit `season=` when adding new football-data.org sync code.
+
+### transfermarkt-api
+
+Local service used for:
+
+- Club/player matching.
+- Market values.
+- Full professional transfer histories for Transfer Rotası.
+
+Start it with:
+
+```powershell
+docker compose up -d transfermarkt-api
 ```
-GET   /clubs?q=&league=&country=       kulüp listesi (arama/filtre)
-GET   /clubs/{id}                      kulüp + kadro + teknik direktör
-GET   /clubs/{id}/default-lineup       gerçek kadrodan otomatik ilk onbir (önizleme)
+
+## Sync Commands
+
+General admin sync endpoint:
+
+```powershell
+curl -X POST http://localhost:8000/admin/sync `
+  -H "Content-Type: application/json" `
+  -d '{"clubs": true, "market_values": true}'
+```
+
+Useful standalone scripts from `backend/`:
+
+```powershell
+.\.venv\Scripts\python run_full_clubs_sync.py
+.\.venv\Scripts\python run_foreign_clubs_sync.py
+.\.venv\Scripts\python run_fdo_sync.py
+.\.venv\Scripts\python run_trophy_sync.py --limit 25
+.\.venv\Scripts\python run_transfer_history_sync.py --limit 200
+```
+
+Prefer standalone scripts for anything that runs more than a few seconds.
+Editing backend Python files while a long `/admin/sync` background task runs
+under `uvicorn --reload` can silently kill the in-flight task.
+
+## API Overview
+
+```text
+GET   /clubs?q=&league=&country=
+GET   /clubs/{id}
+GET   /clubs/{id}/default-lineup
+GET   /clubs/coaches/{coach_id}/trophies
+
 GET   /players/search?q=&position=&club_id=&exclude_club_id=
-GET   /formations                      4-3-3, 4-4-2, 4-2-3-1, 3-5-2, 3-4-3
-POST  /lineups                         {club_id, formation_id?} → yeni diziliş
-GET   /lineups/{id}                    diziliş detayı (slotlar + oyuncular)
-PATCH /lineups/{id}/formation          {formation_id} — oyuncular rol uyumuyla taşınır
-PATCH /lineups/{id}/slots/{slot_key}   {player_id} — sahadaki oyuncuysa takas edilir
-GET   /lineups/{id}/summary            {total_market_value, player_count, formation}
-POST  /admin/sync                      {clubs, market_values} (X-Admin-Token başlığı)
+GET   /players/{player_id}/trophies
+
+GET   /formations
+
+POST  /lineups
+GET   /lineups/{id}
+PATCH /lineups/{id}/formation
+PATCH /lineups/{id}/slots/{slot_key}
+GET   /lineups/{id}/summary
+
+GET   /stats/competitions
+GET   /stats/top-scorers
+GET   /stats/top-assists
+GET   /stats/most-valuable-clubs
+GET   /stats/most-valuable-players
+
+GET   /games/higher-lower/next
+GET   /games/logo-quiz/next
+GET   /games/transfer-route/next
+
+POST  /admin/sync
 ```
 
-## Mimari Notlar
+## Migrations
 
-- **Varsayılan onbir**: kadro, formasyon slotlarına pozisyon uyum kademesi
-  (tam detay eşleşmesi → aynı kanat → merkez) + piyasa değerine göre atanır
-  (`app/services/lineup_service.py`).
-- **Formasyon değişimi**: mevcut oyuncular önce aynı slot anahtarına, sonra rol
-  uyumuna göre yeni dizilişe taşınır; frontend'de Framer Motion `layout`
-  animasyonuyla kayarlar.
-- **Kadro değeri**: backend SQL `SUM` ile döner; frontend ayrıca optimistic
-  hesaplayıp sayıyı count-up animasyonuyla günceller.
-- **Aynı oyuncu iki slotta olamaz**: sahadaki bir oyuncu başka slota seçilirse
-  backend iki slotu takas eder; frontend aynı kuralı optimistic uygular.
+```powershell
+cd backend
+.\.venv\Scripts\alembic revision --autogenerate -m "message"
+.\.venv\Scripts\alembic upgrade head
+```
+
+Review autogenerated migrations before applying. If a new non-null column is
+added to a table that already has rows, add a `server_default`, backfill, and
+then drop the default when appropriate.
+
+## Verification
+
+There is no configured test suite or linter in this repository. For changes,
+use the available build/runtime checks:
+
+```powershell
+cd backend
+.\.venv\Scripts\python -m compileall app
+.\.venv\Scripts\alembic upgrade head
+
+cd ..\frontend
+npm run build
+```
+
+Then run the backend and frontend dev servers and exercise the affected page or
+endpoint directly.
+
+## Architecture Notes
+
+- `Formation.position_slots` stores pitch coordinates as percentages; the
+  frontend renders formations generically.
+- Default lineup assignment matches Turkish `detail_position` labels to
+  formation slot labels, then tie-breaks by market value.
+- Squad sync is diff-based: players no longer returned by the source are removed
+  after clearing lineup slot references.
+- `PlayerSeasonStat.source` and separate external id columns keep API-Football
+  and football-data.org id spaces separate.
+- `Transfer.source` keeps API-Football recent transfers and Transfermarkt full
+  histories separate.
+- Transfer Rotası prefers `source="transfermarkt"` histories with at least three
+  distinct clubs and falls back to shorter API-Football transfer data only if no
+  Transfermarkt history is available.
+- Best scores for games are stored in `localStorage`; current scores are not
+  persisted across remounts.

@@ -39,6 +39,7 @@ class Coach(Base):
     photo_url: Mapped[str | None] = mapped_column(String(300))
     nationality: Mapped[str | None] = mapped_column(String(60))
     club_id: Mapped[int | None] = mapped_column(ForeignKey("clubs.id"), index=True)
+    trophies_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     club: Mapped[Club | None] = relationship(back_populates="coach")
 
@@ -66,6 +67,8 @@ class Player(Base):
     # EUR cinsinden piyasa degeri (transfermarkt-api'den senkronize edilir)
     market_value: Mapped[int | None] = mapped_column(BigInteger)
     market_value_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    trophies_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    transfer_history_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     club: Mapped[Club | None] = relationship(back_populates="players")
 
@@ -155,12 +158,16 @@ class Transfer(Base):
     __tablename__ = "transfers"
     __table_args__ = (
         UniqueConstraint(
-            "external_player_id", "transfer_date", "to_club", name="uq_transfer"
+            "source", "external_player_id", "transfer_date", "to_club", name="uq_transfer"
         ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    source: Mapped[str] = mapped_column(String(20), default="api_football", index=True)
     external_player_id: Mapped[int] = mapped_column(Integer, index=True)
+    external_transfer_id: Mapped[str | None] = mapped_column(String(40), index=True)
+    external_from_club_id: Mapped[str | None] = mapped_column(String(40), index=True)
+    external_to_club_id: Mapped[str | None] = mapped_column(String(40), index=True)
     player_id: Mapped[int | None] = mapped_column(ForeignKey("players.id"))
     player_name: Mapped[str] = mapped_column(String(120))
     from_club: Mapped[str | None] = mapped_column(String(120))
@@ -168,3 +175,31 @@ class Transfer(Base):
     transfer_date: Mapped[str | None] = mapped_column(String(20), index=True)
     fee: Mapped[str | None] = mapped_column(String(40))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class Trophy(Base):
+    """API-Football /trophies verisi (oyuncu / teknik direktor)."""
+
+    __tablename__ = "trophies"
+    __table_args__ = (
+        UniqueConstraint(
+            "holder_type",
+            "holder_id",
+            "competition_name",
+            "season",
+            "place",
+            "club_name",
+            name="uq_trophy_holder_competition",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    holder_type: Mapped[str] = mapped_column(String(12), index=True)
+    holder_id: Mapped[int] = mapped_column(Integer, index=True)
+    external_holder_id: Mapped[int | None] = mapped_column(Integer, index=True)
+    competition_name: Mapped[str] = mapped_column(String(160), index=True)
+    season: Mapped[str | None] = mapped_column(String(20), index=True)
+    place: Mapped[str | None] = mapped_column(String(40), index=True)
+    club_name: Mapped[str | None] = mapped_column(String(120))
+    country: Mapped[str | None] = mapped_column(String(80))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

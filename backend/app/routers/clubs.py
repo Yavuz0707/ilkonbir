@@ -5,8 +5,8 @@ from sqlalchemy.orm import selectinload
 
 from ..database import get_session
 from ..formations_data import DEFAULT_FORMATION
-from ..models import Club, Formation
-from ..schemas import ClubDetail, ClubOut, FormationOut, LineupSlotOut, PlayerOut
+from ..models import Club, Coach, Formation, Trophy
+from ..schemas import ClubDetail, ClubOut, FormationOut, LineupSlotOut, PlayerOut, TrophyOut
 from ..services.lineup_service import build_default_assignment
 
 router = APIRouter(prefix="/clubs", tags=["clubs"])
@@ -26,6 +26,19 @@ async def list_clubs(
         stmt = stmt.where(Club.league == league)
     if country:
         stmt = stmt.where(Club.country == country)
+    return (await session.execute(stmt)).scalars().all()
+
+
+@router.get("/coaches/{coach_id}/trophies", response_model=list[TrophyOut])
+async def coach_trophies(coach_id: int, session: AsyncSession = Depends(get_session)):
+    coach = await session.get(Coach, coach_id)
+    if coach is None:
+        raise HTTPException(404, "Teknik direktor bulunamadi")
+    stmt = (
+        select(Trophy)
+        .where(Trophy.holder_type == "coach", Trophy.holder_id == coach_id)
+        .order_by(Trophy.season.desc().nulls_last(), Trophy.competition_name)
+    )
     return (await session.execute(stmt)).scalars().all()
 
 
