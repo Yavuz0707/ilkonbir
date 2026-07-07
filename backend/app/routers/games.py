@@ -72,6 +72,26 @@ def _same_club_name(left: str | None, right: str | None) -> bool:
     )
 
 
+def _is_route_club_allowed(name: str | None) -> bool:
+    normalized = _norm_name(name)
+    if not normalized:
+        return False
+    tokens = normalized.split()
+    token_set = set(tokens)
+    youth_tokens = {"yth", "youth", "jgd", "jugend", "formation", "for", "fo"}
+    if token_set & youth_tokens:
+        return False
+    for index, token in enumerate(tokens):
+        if token.startswith("u") and token[1:].isdigit() and int(token[1:]) < 19:
+            return False
+        if token.startswith("sub") and token[3:].isdigit() and int(token[3:]) < 19:
+            return False
+        if token == "sub" and index + 1 < len(tokens) and tokens[index + 1].isdigit():
+            if int(tokens[index + 1]) < 19:
+                return False
+    return True
+
+
 async def _ranked_candidates(session: AsyncSession, category: str) -> list[_Candidate]:
     if category == "market_value":
         stmt = (
@@ -215,7 +235,10 @@ async def _transfer_route_for(
     route: list[TransferRouteClubOut] = []
     for transfer in transfers:
         date = transfer.transfer_date
-        if transfer.from_club and not route:
+        from_allowed = _is_route_club_allowed(transfer.from_club)
+        to_allowed = _is_route_club_allowed(transfer.to_club)
+
+        if transfer.from_club and from_allowed and not route:
             route.append(
                 TransferRouteClubOut(
                     name=transfer.from_club,
@@ -227,7 +250,7 @@ async def _transfer_route_for(
         elif route and date and route[-1].end_date is None:
             route[-1].end_date = date
 
-        if not transfer.to_club:
+        if not transfer.to_club or not to_allowed:
             continue
         if route and _same_club_name(route[-1].name, transfer.to_club):
             route[-1].start_date = route[-1].start_date or date
@@ -269,7 +292,7 @@ async def _transfer_route_for(
 
     cleaned: list[TransferRouteClubOut] = []
     for item in route:
-        if not item.name:
+        if not item.name or not _is_route_club_allowed(item.name):
             continue
         if cleaned and _same_club_name(cleaned[-1].name, item.name):
             cleaned[-1].end_date = item.end_date
@@ -282,35 +305,15 @@ async def _transfer_route_for(
 async def _transfer_route_options(
     session: AsyncSession, correct: Player
 ) -> list[TransferRouteOptionOut]:
-    def base_stmt():
-        return (
+    picked = (
+        await session.execute(
             select(Player)
             .options(selectinload(Player.club))
             .where(Player.id != correct.id)
             .order_by(func.random())
+            .limit(_TRANSFER_ROUTE_OPTION_COUNT - 1)
         )
-
-    picked: list[Player] = []
-    seen = {correct.id}
-
-    queries = [
-        base_stmt()
-        .join(Club, Player.club_id == Club.id, isouter=True)
-        .where(Player.position == correct.position, Club.league == (correct.club.league if correct.club else None))
-        .limit(_TRANSFER_ROUTE_OPTION_COUNT - 1),
-        base_stmt().where(Player.position == correct.position).limit(_TRANSFER_ROUTE_OPTION_COUNT - 1),
-        base_stmt().limit(_TRANSFER_ROUTE_OPTION_COUNT - 1),
-    ]
-    for stmt in queries:
-        for player in (await session.execute(stmt)).scalars().all():
-            if player.id in seen:
-                continue
-            picked.append(player)
-            seen.add(player.id)
-            if len(picked) >= _TRANSFER_ROUTE_OPTION_COUNT - 1:
-                break
-        if len(picked) >= _TRANSFER_ROUTE_OPTION_COUNT - 1:
-            break
+    ).scalars().all()
 
     if len(picked) < _TRANSFER_ROUTE_OPTION_COUNT - 1:
         raise HTTPException(404, "Transfer rotasi icin yeterli oyuncu yok")

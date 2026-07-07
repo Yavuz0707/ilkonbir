@@ -54,9 +54,6 @@ function OptionButton({ option, selected, isCorrect, revealed, disabled, onPick 
       <p className="font-display text-base font-bold uppercase tracking-wide text-ink">
         {option.name}
       </p>
-      <p className="mt-1 text-xs text-ink-muted">
-        {option.position ? `Pozisyon: ${option.position}` : "Pozisyon bilinmiyor"}
-      </p>
     </motion.button>
   );
 }
