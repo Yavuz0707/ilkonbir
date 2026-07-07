@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 const NAV = [
   { to: "/", label: "Ana Sayfa", end: true },
-  { to: "/oyunlar/kim-daha-iyi", label: "Oyunlar" },
+  { to: "/oyunlar", label: "Oyunlar" },
   { to: "/kulupler", label: "Kulüpler" },
   { to: "/dunya-kupasi", label: "Dünya Kupası", soon: true },
   { to: "/istatistikler", label: "İstatistikler", soon: true },
@@ -49,7 +49,7 @@ export default function Header() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="relative z-30 border-b border-mid/50 bg-night/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-mid/50 bg-night/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link to="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
           <span className="text-xl">⚽</span>

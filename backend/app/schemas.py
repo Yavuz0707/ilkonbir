@@ -146,6 +146,15 @@ class GameRoundOut(BaseModel):
     left: GameCardOut
     right: GameCardOut
     higher_id: int
+    # Degeri gosterilecek (bilinen) oyuncunun id'si — pozisyondan bagimsizdir,
+    # sol da sag da olabilir. Frontend hangi kartin "?" ile gizlenecegini buna
+    # gore belirler.
+    known_id: int
+
+
+class LogoQuizRoundOut(BaseModel):
+    correct_id: int
+    options: list[ClubMini]
 
 
 class ClubValueOut(BaseModel):

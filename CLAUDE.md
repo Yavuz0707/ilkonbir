@@ -45,6 +45,9 @@ standalone scripts in `backend/` (`run_full_clubs_sync.py`, `run_foreign_clubs_s
 `run_fdo_sync.py`, `resync_club.py <team_id>`, `run_retry_unmatched_clubs.py`,
 `cleanup_duplicate_clubs.py`). Prefer the standalone scripts for anything that takes
 more than a few seconds — see the uvicorn `--reload` gotcha below.
+`backfill_stat_links.py` is a DB-only (no external API) repair that relinks
+existing `PlayerSeasonStat` rows to `Player` — run it after a squad resync if the
+games' goal/assist pool looks under-populated (see "Stat→Player linking" below).
 
 ## Architecture
 
@@ -81,6 +84,44 @@ constraint, since API-Football and football-data.org use incompatible league-id
 numbering for the same competition (e.g. Champions League appears as two separate
 rows, one per source, each with its own season vintage — this is intentional, not
 a dedup bug, and the frontend's league picker shows both with a season sub-label).
+
+### Stat→Player linking (`app/services/stat_linking.py`)
+
+`PlayerSeasonStat` rows must be linked to a `Player` (`player_id`) for the
+"Kim Daha İyi?" goals/assists game to include them — that pool is
+`SUM(goals) GROUP BY player_id WHERE player_id IS NOT NULL`, so an unlinked stat
+row is invisible to the game. Linking is **not** a simple external-id join,
+because the same real player has a *different* `external_player_id` per source and
+`Player` only stores whichever source's id synced that club: a foreign player
+(e.g. Haaland) has a football-data.org-sourced `Player` row, so his API-Football
+UEFA-cup stat rows can't match on `external_api_football_id`. `link_player` therefore
+goes **external-id first** (fdo→`external_football_data_org_id`, af→`external_api_football_id`),
+then falls back to a **strict** surname-anchored name match (exact normalised
+surname + compatible first name/initial, mononyms only match mononyms, club name
+breaks ties, ambiguous → no link). The looseness of a plain `token_set_ratio` here
+produces wrong links (`Thiam`→`Thiaw`, `Kara`→`Kamara`), so keep the fallback
+strict. Both stat syncs (`sync_top_stats`, `sync_football_data_org_scorers`) call
+`link_player`; `backfill_stat_links.py` reuses it to repair existing rows without
+hitting any API. Summing a player's rows across sources is safe (no double count):
+the two sources cover disjoint (competition, season) pairs.
+
+### Games (`app/routers/games.py` + `frontend/src/pages/*GamePage.jsx`)
+
+Two guest games, hubbed at `/oyunlar` (`GamesPage.jsx`); best scores persist in
+`localStorage` (per-game key), current score does not. All game logic is
+**backend-authoritative** — the frontend never decides the answer.
+- **Kim Daha İyi?** (`/games/higher-lower/next`, `HigherLowerGamePage.jsx`): pick
+  the higher of two players by `market_value` | career `goals` | career `assists`.
+  The backend rejects tied pairs (retries up to a cap, then a clean 404),
+  randomises which side is the *known* card, and returns `known_id` so the frontend
+  reveals by identity, not a fixed left/right position. Goals/assists are labelled
+  "… (Kayıtlı Sezonlar)" with an info tooltip on purpose: transfermarkt-api's
+  player `/profile` and `/stats` endpoints do **not** expose real career totals
+  (stats returns `[]`), so the value is honestly the sum of synced seasons — do not
+  add a `career_goals` column expecting Transfermarkt to fill it.
+- **Logo Bulmaca** (`/games/logo-quiz/next`, `LogoQuizGamePage.jsx`): 10 rounds,
+  guess the club from its blurred crest among 4 options; `exclude_ids` prevents
+  repeats within a game.
 
 ### Squad sync is diff-based, not additive
 
@@ -137,9 +178,10 @@ frontend changes needed since slots render generically from this data.
 
 `App.jsx` keys `<Routes>` on `location.pathname` so every navigation fully
 remounts the page tree (enables the Framer Motion page-transition animations) —
-don't rely on component state surviving a route change. The lineup page
-(`/club/:clubId`) hides the top nav header entirely for a full-screen pitch
-experience; other pages show it.
+don't rely on component state surviving a route change. The `Header` is
+`sticky top-0` and shown on **every** page including the lineup page
+(`/club/:clubId`); an earlier "full-screen pitch, no header" special-case was
+deliberately removed so users can always navigate away.
 
 ### Background sync tasks die on `uvicorn --reload`
 

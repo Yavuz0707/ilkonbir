@@ -21,11 +21,11 @@ from sqlalchemy.orm import selectinload
 
 from ..config import get_settings
 from ..models import Club, LineupSlot, Player, PlayerSeasonStat
+from .stat_linking import build_id_maps, link_player
 
 logger = logging.getLogger(__name__)
 
 SOURCE = "football_data_org"
-_MATCH_THRESHOLD = 82
 _CLUB_MATCH_THRESHOLD = 80
 
 # code -> mevcut kod tabanında zaten kullanılan lig görünen adı (bkz.
@@ -83,10 +83,12 @@ async def sync_football_data_org_scorers(session: AsyncSession) -> str:
     if not settings.football_data_org_api_key:
         return "FOOTBALL_DATA_ORG_API_KEY yok, senkronizasyon atlandı."
 
-    # Fuzzy eslestirme icin butun oyuncular + kulup adi tek seferde yuklenir
+    # Baglama icin butun oyuncular + kulup adi tek seferde yuklenir (external-id
+    # oncelikli + capraz-kaynak isim yedegi, bkz. stat_linking)
     players = (
         (await session.execute(select(Player).options(selectinload(Player.club)))).scalars().all()
     )
+    by_af_id, by_fdo_id = build_id_maps(players)
 
     upserted = 0
     async with _client() as client:
@@ -103,7 +105,10 @@ async def sync_football_data_org_scorers(session: AsyncSession) -> str:
                 season_year = int(data["season"]["startDate"][:4])
 
                 for row in data.get("scorers", []):
-                    await _upsert_fdo_stat(session, row, league_id, league_name, season_year, players)
+                    await _upsert_fdo_stat(
+                        session, row, league_id, league_name, season_year,
+                        players, by_af_id, by_fdo_id,
+                    )
                     upserted += 1
                 await session.commit()
             except httpx.HTTPError as exc:
@@ -255,19 +260,6 @@ async def _sync_foreign_squad(session: AsyncSession, club: Club, team: dict) -> 
     return count, removed
 
 
-def _best_player_match(name: str, club_name: str | None, players: list[Player]) -> Player | None:
-    target = _norm(name)
-    best, best_score = None, 0.0
-    for p in players:
-        score = fuzz.token_set_ratio(target, _norm(p.name))
-        if club_name and p.club and score >= _MATCH_THRESHOLD - 10:
-            club_score = fuzz.token_set_ratio(_norm(club_name), _norm(p.club.name))
-            score = score * 0.75 + club_score * 0.25
-        if score > best_score:
-            best, best_score = p, score
-    return best if best_score >= _MATCH_THRESHOLD else None
-
-
 async def _upsert_fdo_stat(
     session: AsyncSession,
     row: dict,
@@ -275,6 +267,8 @@ async def _upsert_fdo_stat(
     league_name: str,
     season: int,
     players: list[Player],
+    by_af_id: dict[int, Player],
+    by_fdo_id: dict[int, Player],
 ) -> None:
     fp = row.get("player") or {}
     team = row.get("team") or {}
@@ -293,7 +287,10 @@ async def _upsert_fdo_stat(
             )
         )
     ).scalar_one_or_none()
-    linked = _best_player_match(fp.get("name", ""), team.get("name"), players)
+    # external_football_data_org_id ile KESIN, tutmazsa capraz-kaynak isim yedegi
+    linked = link_player(
+        SOURCE, ext, fp.get("name") or "", team.get("name"), players, by_af_id, by_fdo_id
+    )
 
     if existing is None:
         existing = PlayerSeasonStat(

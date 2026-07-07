@@ -12,7 +12,15 @@ export default function ClubsPage() {
   const [league, setLeague] = useState(null);
 
   useEffect(() => {
-    api.clubs().then(setClubs).finally(() => setLoading(false));
+    api
+      .clubs()
+      .then((data) => {
+        setClubs(data);
+        // Varsayilan lig: Premier League (yoksa alfabetik ilk lig).
+        const available = [...new Set(data.map((c) => c.league).filter(Boolean))];
+        setLeague(available.includes("Premier League") ? "Premier League" : available[0] ?? null);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const leagues = useMemo(
@@ -64,7 +72,7 @@ export default function ClubsPage() {
         <ClubGrid clubs={filtered} />
       ) : (
         <p className="py-12 text-center text-sm text-ink-muted">
-          Bu aramaya uyan kulüp yok — farklı bir isim dene ya da lig filtresini kaldır.
+          Bu aramaya uyan kulüp yok — farklı bir isim ya da lig dene.
         </p>
       )}
     </motion.main>

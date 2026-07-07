@@ -12,9 +12,11 @@ import httpx
 from rapidfuzz import fuzz
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from ..config import get_settings
 from ..models import Club, Coach, LineupSlot, Player, PlayerSeasonStat, Transfer, utcnow
+from .stat_linking import build_id_maps, link_player
 
 logger = logging.getLogger(__name__)
 
@@ -276,6 +278,14 @@ async def sync_top_stats(session: AsyncSession, skip_existing: bool = True) -> s
     if not settings.api_football_key:
         return "API_FOOTBALL_KEY yok, top stats atlandı."
 
+    # Oyuncu -> Player baglama icin tum oyuncular bir kez yuklenir (external-id
+    # oncelikli + isim yedegi). expire_on_commit=False oldugu icin dongudeki
+    # commit'ler bu listeyi expire etmez.
+    players = (
+        (await session.execute(select(Player).options(selectinload(Player.club)))).scalars().all()
+    )
+    by_af_id, by_fdo_id = build_id_maps(players)
+
     upserted = 0
     async with _client() as client:
         for league_id in settings.stat_league_ids:
@@ -299,7 +309,9 @@ async def sync_top_stats(session: AsyncSession, skip_existing: bool = True) -> s
                             client, endpoint, {"league": league_id, "season": season}
                         )
                         for item in rows:
-                            await _upsert_stat(session, item, league_id, season)
+                            await _upsert_stat(
+                                session, item, league_id, season, players, by_af_id, by_fdo_id
+                            )
                             upserted += 1
                         await session.commit()
                     except Exception as exc:  # noqa: BLE001 — bir lig/sezon patlarsa digerleri devam
@@ -313,21 +325,24 @@ async def sync_top_stats(session: AsyncSession, skip_existing: bool = True) -> s
     return f"{upserted} gol/asist kaydı senkronize edildi."
 
 
-async def _upsert_stat(session: AsyncSession, item: dict, league_id: int, season: int) -> None:
+async def _upsert_stat(
+    session: AsyncSession,
+    item: dict,
+    league_id: int,
+    season: int,
+    players: list[Player],
+    by_af_id: dict[int, Player],
+    by_fdo_id: dict[int, Player],
+) -> None:
     p = item.get("player") or {}
     stats = item.get("statistics") or [{}]
     st = stats[0]
     ext = p.get("id")
     if ext is None:
         return
-    # ÖNEMLİ: Tüm SELECT'ler, yeni row session'a eklenmeden ÖNCE yapilir.
-    # Aksi halde SELECT autoflush'i tetikler ve henuz doldurulmamis (name=null)
-    # row flush edilmeye calisilir -> NotNullViolation.
-    linked = (
-        await session.execute(
-            select(Player).where(Player.external_api_football_id == ext)
-        )
-    ).scalar_one_or_none()
+    # ÖNEMLİ: SELECT, yeni row session'a eklenmeden ÖNCE yapilir; aksi halde
+    # autoflush henuz doldurulmamis (name=null) row'u flush etmeye calisir.
+    # Player baglamasi in-memory yapilir (link_player DB'ye gitmez).
     row = (
         await session.execute(
             select(PlayerSeasonStat).where(
@@ -345,6 +360,10 @@ async def _upsert_stat(session: AsyncSession, item: dict, league_id: int, season
     goals = st.get("goals") or {}
     cards = st.get("cards") or {}
     league = st.get("league") or {}
+    # external-id oncelikli + capraz-kaynak isim yedegi (bkz. stat_linking)
+    linked = link_player(
+        "api_football", ext, p.get("name") or "", team.get("name"), players, by_af_id, by_fdo_id
+    )
     row.player_id = linked.id if linked else None
     row.name = (linked.name if linked else None) or p.get("name") or row.name or "?"
     row.photo_url = (linked.photo_url if linked else None) or p.get("photo")

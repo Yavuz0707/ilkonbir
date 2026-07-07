@@ -13,6 +13,13 @@ const CATEGORIES = [
 
 const POINTS_PER_CORRECT = 10;
 const ROUND_RETRY_LIMIT = 3;
+const BEST_SCORE_KEY = "kim-daha-iyi-best-score";
+
+function readBestScore() {
+  if (typeof window === "undefined") return 0;
+  const parsed = parseInt(window.localStorage.getItem(BEST_SCORE_KEY) ?? "", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
 
 function formatMetric(category, value) {
   if (category === "market_value") return formatValue(value);
@@ -21,8 +28,14 @@ function formatMetric(category, value) {
 
 function metricLabel(category) {
   if (category === "market_value") return "Piyasa Değeri";
-  return category === "goals" ? "Kariyer Gol" : "Kariyer Asist";
+  // Transfermarkt gercek kariyer toplamini vermiyor (profil/stats endpoint'i bos
+  // donuyor); bu deger yalnizca sisteme senkronize edilmis sezonlarin toplami.
+  // Kullaniciyi yanlis bilgilendirmemek icin durustce etiketlenir + tooltip.
+  return category === "goals" ? "Gol (Kayıtlı Sezonlar)" : "Asist (Kayıtlı Sezonlar)";
 }
+
+const SEASON_SCOPE_NOTE =
+  "Bu değer, sistemde kayıtlı sezonların toplamıdır; oyuncunun tüm kariyerini kapsamayabilir.";
 
 async function fetchNonTiedRound(params) {
   let lastRound = null;
@@ -77,7 +90,18 @@ function GameCard({ card, category, visible, selected, result, disabled, onPick 
       </div>
 
       <div className="w-full">
-        <p className="eyebrow mb-1.5">{metricLabel(category)}</p>
+        <p className="eyebrow mb-1.5 inline-flex items-center justify-center gap-1">
+          {metricLabel(category)}
+          {category !== "market_value" && (
+            <span
+              title={SEASON_SCOPE_NOTE}
+              aria-label={SEASON_SCOPE_NOTE}
+              className="inline-flex h-3.5 w-3.5 cursor-help items-center justify-center rounded-full border border-ink-faint/70 text-[8px] font-bold leading-none text-ink-faint"
+            >
+              i
+            </span>
+          )}
+        </p>
         <div className="rounded-lg border border-mid/70 bg-night/65 px-3 py-3">
           {visible ? (
             <ScoreboardValue
@@ -100,7 +124,7 @@ export default function HigherLowerGamePage() {
   const [category, setCategory] = useState("market_value");
   const [round, setRound] = useState(null);
   const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(0);
+  const [bestScore, setBestScore] = useState(readBestScore);
   const [selectedId, setSelectedId] = useState(null);
   const [revealed, setRevealed] = useState(false);
   const [result, setResult] = useState(null);
@@ -129,6 +153,11 @@ export default function HigherLowerGamePage() {
   useEffect(() => {
     loadFirstRound();
   }, [loadFirstRound]);
+
+  // Rekor kalici: sayfa degistirilip geri donulunce (component remount) korunur.
+  useEffect(() => {
+    window.localStorage.setItem(BEST_SCORE_KEY, String(bestScore));
+  }, [bestScore]);
 
   const handlePick = useCallback(
     async (card) => {
@@ -251,7 +280,7 @@ export default function HigherLowerGamePage() {
             <GameCard
               card={round.left}
               category={category}
-              visible
+              visible={revealed || round.left.id === round.known_id}
               selected={selectedId === round.left.id}
               result={revealed && selectedId === round.left.id ? result : null}
               disabled={revealed || gameOver}
@@ -265,7 +294,7 @@ export default function HigherLowerGamePage() {
             <GameCard
               card={round.right}
               category={category}
-              visible={revealed}
+              visible={revealed || round.right.id === round.known_id}
               selected={selectedId === round.right.id}
               result={revealed && selectedId === round.right.id ? result : null}
               disabled={revealed || gameOver}

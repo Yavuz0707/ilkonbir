@@ -1,4 +1,4 @@
-/** Lig filtre chip'leri (Tümü + lig adları). */
+/** Lig filtre chip'leri (yalnizca lig adlari; "Tümü" yok, her zaman bir lig secili). */
 export default function LeagueFilter({ leagues, value, onChange }) {
   if (leagues.length <= 1) return null;
   const chip = (active) =>
@@ -10,20 +10,12 @@ export default function LeagueFilter({ leagues, value, onChange }) {
 
   return (
     <div className="flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="Lig filtresi">
-      <button
-        role="radio"
-        aria-checked={value === null}
-        onClick={() => onChange(null)}
-        className={chip(value === null)}
-      >
-        Tümü
-      </button>
       {leagues.map((l) => (
         <button
           key={l}
           role="radio"
           aria-checked={value === l}
-          onClick={() => onChange(l === value ? null : l)}
+          onClick={() => onChange(l)}
           className={chip(value === l)}
         >
           {l}

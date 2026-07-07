@@ -7,13 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..database import get_session
-from ..models import Player, PlayerSeasonStat
-from ..schemas import GameCardOut, GameRoundOut
+from ..models import Club, Player, PlayerSeasonStat
+from ..schemas import ClubMini, GameCardOut, GameRoundOut, LogoQuizRoundOut
 
 router = APIRouter(prefix="/games", tags=["games"])
 
 _WINDOW = 15
 _MAX_PAIR_ATTEMPTS = 50
+_LOGO_QUIZ_OPTION_COUNT = 4
 
 
 @dataclass(frozen=True)
@@ -140,7 +141,17 @@ async def next_round(
     if len(candidates) < 2:
         raise HTTPException(404, "Bu kategori icin yeterli farkli veri yok")
 
-    left_candidate, right_candidate = _pick_pair(candidates, anchor_id, exclude_player_id)
+    # _pick_pair ilk eleman olarak "anchor"i dondurur: bir onceki turdan tasinan,
+    # degeri kullaniciya gosterilen (known) oyuncu; ilk turda rastgele secilir.
+    # Bilinen kartin surekli ayni tarafta cikmamasi icin sol/sag pozisyonu burada
+    # rastgele karistirilir. Frontend known/hidden ayrimini pozisyondan degil,
+    # `known_id`'den yapar.
+    anchor_candidate, other_candidate = _pick_pair(candidates, anchor_id, exclude_player_id)
+    if random.random() < 0.5:
+        left_candidate, right_candidate = anchor_candidate, other_candidate
+    else:
+        left_candidate, right_candidate = other_candidate, anchor_candidate
+
     left = await _card_for(session, category, left_candidate)
     right = await _card_for(session, category, right_candidate)
 
@@ -148,4 +159,41 @@ async def next_round(
         raise HTTPException(404, "Bu kategori icin yeterli farkli veri yok")
 
     higher_id = left.id if left.value > right.value else right.id
-    return GameRoundOut(left=left, right=right, higher_id=higher_id)
+    return GameRoundOut(
+        left=left, right=right, higher_id=higher_id, known_id=anchor_candidate.id
+    )
+
+
+@router.get("/logo-quiz/next", response_model=LogoQuizRoundOut)
+async def logo_quiz_next(
+    session: AsyncSession = Depends(get_session),
+    exclude_ids: str | None = Query(
+        None, description="Bu oyunda daha once sorulmus kulup id'leri (virgulle ayrilmis)"
+    ),
+):
+    stmt = select(Club).where(Club.logo_url.isnot(None), Club.logo_url != "")
+    clubs = (await session.execute(stmt)).scalars().all()
+    if len(clubs) < _LOGO_QUIZ_OPTION_COUNT:
+        raise HTTPException(404, "Logo bulmacasi icin yeterli kulup yok")
+
+    excluded: set[int] = set()
+    if exclude_ids:
+        for part in exclude_ids.split(","):
+            part = part.strip()
+            if part.isdigit():
+                excluded.add(int(part))
+
+    pool = [club for club in clubs if club.id not in excluded] or clubs
+    correct = random.choice(pool)
+    distractor_pool = [club for club in clubs if club.id != correct.id]
+    distractors = random.sample(
+        distractor_pool, k=min(_LOGO_QUIZ_OPTION_COUNT - 1, len(distractor_pool))
+    )
+
+    options = [correct, *distractors]
+    random.shuffle(options)
+
+    return LogoQuizRoundOut(
+        correct_id=correct.id,
+        options=[ClubMini.model_validate(club) for club in options],
+    )
