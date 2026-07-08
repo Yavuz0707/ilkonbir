@@ -159,6 +159,45 @@ class LogoQuizRoundOut(BaseModel):
     options: list[ClubMini]
 
 
+class SilhouetteOptionOut(BaseModel):
+    id: int
+    name: str
+    club_name: str | None = None
+    club_logo: str | None = None
+
+
+class SilhouetteRoundOut(BaseModel):
+    correct_id: int
+    photo_url: str
+    options: list[SilhouetteOptionOut]
+
+
+class ClueGuessHintOut(BaseModel):
+    kind: str
+    label: str
+    text: str
+
+
+class ClueGuessRoundOut(BaseModel):
+    answer_token: str
+    hints: list[ClueGuessHintOut]
+
+
+class ClueGuessAnswerIn(BaseModel):
+    answer_token: str
+    guess: str = ""
+    revealed_hint_count: int = 1
+
+
+class ClueGuessAnswerOut(BaseModel):
+    correct: bool
+    points: int
+    correct_name: str
+    photo_url: str | None = None
+    club_name: str | None = None
+    club_logo: str | None = None
+
+
 class TransferRouteClubOut(BaseModel):
     name: str
     logo_url: str | None = None
@@ -170,9 +209,6 @@ class TransferRouteOptionOut(BaseModel):
     id: int
     name: str
     photo_url: str | None = None
-    position: str | None = None
-    club_name: str | None = None
-    club_logo: str | None = None
 
 
 class TransferRouteRoundOut(BaseModel):
@@ -197,3 +233,37 @@ class ClubValueOut(BaseModel):
     club: ClubMini
     total_market_value: int
     player_count: int
+
+
+class TransferOut(ORMModel):
+    id: int
+    source: str
+    player_name: str
+    from_club: str | None = None
+    to_club: str | None = None
+    transfer_date: str | None = None
+    fee: str | None = None
+
+
+class MarketValuePointOut(BaseModel):
+    date: str
+    market_value: int | None = None
+    club_name: str | None = None
+
+
+class PlayerDetailOut(PlayerWithClub):
+    trophies: list[TrophyOut] = []
+    transfers: list[TransferOut] = []
+    total_goals: int = 0
+    total_assists: int = 0
+    market_value_history: list[MarketValuePointOut] = []
+
+
+class ClubStatsOut(BaseModel):
+    club: ClubDetail
+    total_market_value: int
+    average_market_value: int
+    player_count: int
+    top_players: list[PlayerOut]
+    transfers: list[TransferOut]
+    market_value_history: list[MarketValuePointOut] = []

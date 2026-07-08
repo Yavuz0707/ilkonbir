@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { api } from "../api";
+import { ConfettiBurst, SoundToggle, useGameFeedback } from "../components/GameFeedback.jsx";
 import PlayerAvatar from "../components/PlayerAvatar.jsx";
 import ScoreboardValue from "../components/ScoreboardValue.jsx";
 import { formatValue } from "../utils/format";
@@ -131,6 +132,7 @@ export default function HigherLowerGamePage() {
   const [gameOver, setGameOver] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const feedback = useGameFeedback();
 
   const loadFirstRound = useCallback(async () => {
     setLoading(true);
@@ -185,12 +187,15 @@ export default function HigherLowerGamePage() {
       setResult(correct ? "correct" : "wrong");
 
       if (!correct) {
+        feedback.playWrong();
         setBestScore((best) => Math.max(best, score));
         setGameOver(true);
         return;
       }
 
       const nextScore = score + POINTS_PER_CORRECT;
+      feedback.playCorrect();
+      if (nextScore > bestScore) feedback.celebrate();
       setScore(nextScore);
       setBestScore((best) => Math.max(best, nextScore));
 
@@ -211,7 +216,7 @@ export default function HigherLowerGamePage() {
         }
       }, 800);
     },
-    [category, gameOver, revealed, round, score]
+    [bestScore, category, feedback, gameOver, revealed, round, score]
   );
 
   return (
@@ -222,6 +227,7 @@ export default function HigherLowerGamePage() {
       transition={{ duration: 0.3 }}
       className="mx-auto min-h-screen max-w-6xl px-4 pb-10 pt-6"
     >
+      <ConfettiBurst burst={feedback.burst} />
       <header className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="eyebrow">Oyunlar</p>
@@ -239,6 +245,7 @@ export default function HigherLowerGamePage() {
             <ScoreboardValue text={String(bestScore)} className="text-2xl font-semibold text-gold sm:text-3xl" />
           </div>
         </div>
+        <SoundToggle enabled={feedback.soundEnabled} onChange={feedback.setSoundEnabled} />
       </header>
 
       <div className="mb-5 flex flex-wrap gap-2">

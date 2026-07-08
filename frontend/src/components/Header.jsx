@@ -8,7 +8,7 @@ const NAV = [
   { to: "/kulupler", label: "Kulüpler" },
   { to: "/dunya-kupasi", label: "Dünya Kupası", soon: true },
   { to: "/istatistikler", label: "İstatistikler", soon: true },
-  { to: "/oyuncular", label: "Oyuncular", soon: true },
+  { to: "/oyuncular", label: "Oyuncular" },
 ];
 
 function NavItem({ item, onClick }) {

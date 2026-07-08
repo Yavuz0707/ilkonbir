@@ -9,6 +9,7 @@ import PitchBackground from "../components/PitchBackground.jsx";
 import PlayerSlot from "../components/PlayerSlot.jsx";
 import PlayerSwapModal from "../components/PlayerSwapModal.jsx";
 import SquadValueBar from "../components/SquadValueBar.jsx";
+import { themeStyle } from "../utils/clubTheme";
 
 // Skeleton'da nabız atan slot yer tutucuları (4-3-3 koordinatları)
 const SKELETON_SPOTS = [
@@ -190,8 +191,17 @@ export default function LineupBuilderPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
+      style={themeStyle(club)}
       className="mx-auto min-h-screen max-w-6xl px-4 pb-28 pt-6 lg:h-[calc(100vh-73px)] lg:min-h-0 lg:overflow-hidden lg:pb-4"
     >
+      <span
+        className="pointer-events-none fixed left-[-12%] top-16 h-[420px] w-[420px] rounded-full opacity-20 blur-3xl"
+        style={{ background: "var(--club-primary)" }}
+      />
+      <span
+        className="pointer-events-none fixed right-[-12%] bottom-0 h-[360px] w-[360px] rounded-full opacity-[0.18] blur-3xl"
+        style={{ background: "var(--club-secondary)" }}
+      />
       {/* Hata bildirimi */}
       <AnimatePresence>
         {error && (

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { api } from "../api";
+import { ConfettiBurst, SoundToggle, useGameFeedback } from "../components/GameFeedback.jsx";
 import ScoreboardValue from "../components/ScoreboardValue.jsx";
 
 const TOTAL_ROUNDS = 10;
@@ -50,6 +51,7 @@ export default function LogoQuizGamePage() {
   const [gameOver, setGameOver] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const feedback = useGameFeedback();
 
   const loadRound = useCallback(async (excludeIds) => {
     setLoading(true);
@@ -93,8 +95,12 @@ export default function LogoQuizGamePage() {
       setRevealed(true);
       const nextScore = correct ? score + POINTS_PER_CORRECT : score;
       if (correct) {
+        feedback.playCorrect();
+        if (nextScore > bestScore) feedback.celebrate();
         setScore(nextScore);
         setBestScore((best) => Math.max(best, nextScore));
+      } else {
+        feedback.playWrong();
       }
 
       window.setTimeout(() => {
@@ -109,7 +115,7 @@ export default function LogoQuizGamePage() {
         loadRound(nextUsedIds);
       }, ADVANCE_DELAY_MS);
     },
-    [gameOver, loadRound, revealed, round, roundIndex, score, usedIds]
+    [bestScore, feedback, gameOver, loadRound, revealed, round, roundIndex, score, usedIds]
   );
 
   return (
@@ -120,6 +126,7 @@ export default function LogoQuizGamePage() {
       transition={{ duration: 0.3 }}
       className="mx-auto min-h-screen max-w-4xl px-4 pb-10 pt-6"
     >
+      <ConfettiBurst burst={feedback.burst} />
       <header className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="eyebrow">Oyunlar</p>
@@ -144,6 +151,7 @@ export default function LogoQuizGamePage() {
             <ScoreboardValue text={String(bestScore)} className="text-2xl font-semibold text-gold sm:text-3xl" />
           </div>
         </div>
+        <SoundToggle enabled={feedback.soundEnabled} onChange={feedback.setSoundEnabled} />
       </header>
 
       {loading ? (
@@ -175,7 +183,11 @@ export default function LogoQuizGamePage() {
               <img
                 src={round.options.find((c) => c.id === round.correct_id)?.logo_url}
                 alt="Kulüp logosu"
-                className="relative h-full w-full object-contain"
+                className={`relative h-full w-full object-contain transition duration-300 ${
+                  revealed
+                    ? "blur-0 brightness-100"
+                    : "scale-105 blur-sm saturate-90 opacity-100"
+                }`}
               />
             </div>
           </div>

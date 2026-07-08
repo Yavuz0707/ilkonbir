@@ -14,7 +14,7 @@ export default function ClubCard({ club, value }) {
         show: { opacity: 1, y: 0, scale: 1 },
       }}
       whileHover={{ y: -6 }}
-      onClick={() => navigate(`/club/${club.id}`)}
+      onClick={() => navigate(`/kulupler/${club.id}`)}
       className="bracket-corners group flex flex-col items-center gap-3 rounded-2xl border border-mid/50 bg-deep/40 p-5 backdrop-blur-sm transition-shadow duration-300 hover:border-mid hover:shadow-glow"
     >
       {club.logo_url ? (

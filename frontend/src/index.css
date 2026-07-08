@@ -109,6 +109,20 @@ body {
   animation: skeleton-pulse 1.6s ease-in-out infinite;
 }
 
+@keyframes confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) rotate(0deg);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) rotate(560deg);
+  }
+}
+
 /* ---- Taktik tahtası köşe braketleri (kart hover) ---- */
 .bracket-corners {
   position: relative;

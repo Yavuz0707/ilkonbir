@@ -21,6 +21,7 @@ export const api = {
     return request(`/clubs${qs ? `?${qs}` : ""}`);
   },
   club: (id) => request(`/clubs/${id}`),
+  clubStats: (id) => request(`/clubs/${id}/stats`),
   formations: () => request("/formations"),
   createLineup: (clubId, formationId = null) =>
     request("/lineups", {
@@ -45,6 +46,7 @@ export const api = {
     );
     return request(`/players/search?${q}`);
   },
+  player: (id) => request(`/players/${id}`),
   competitions: (params = {}) => request(`/stats/competitions?${qs(params)}`),
   topScorers: (params = {}) => request(`/stats/top-scorers?${qs(params)}`),
   topAssists: (params = {}) => request(`/stats/top-assists?${qs(params)}`),
@@ -52,6 +54,13 @@ export const api = {
   mostValuablePlayers: (params = {}) => request(`/stats/most-valuable-players?${qs(params)}`),
   higherLowerNext: (params = {}) => request(`/games/higher-lower/next?${qs(params)}`),
   logoQuizNext: (params = {}) => request(`/games/logo-quiz/next?${qs(params)}`),
+  silhouetteNext: (params = {}) => request(`/games/silhouette/next?${qs(params)}`),
+  clueGuessNext: () => request("/games/clue-guess/next"),
+  clueGuessAnswer: (payload) =>
+    request("/games/clue-guess/answer", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   transferRouteNext: () => request("/games/transfer-route/next"),
   playerTrophies: (playerId) => request(`/players/${playerId}/trophies`),
   coachTrophies: (coachId) => request(`/clubs/coaches/${coachId}/trophies`),

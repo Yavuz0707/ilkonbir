@@ -14,9 +14,9 @@ class Settings(BaseSettings):
     api_football_base_url: str = "https://v3.football.api-sports.io"
     api_football_use_rapidapi: bool = False
     api_football_rapidapi_host: str = "api-football-v1.p.rapidapi.com"
-    # Kulup/kadro senkronu icin lig ID'leri (API-Football): 203=Super Lig, 39=Premier League,
-    # 140=La Liga, 78=Bundesliga, 135=Serie A, 61=Ligue 1
-    api_football_leagues: str = "203,39,140,78,135,61"
+    # Kulup/kadro senkronu icin lig ID'leri (API-Football): 203=Super Lig.
+    # Yabanci liglerin guncel kadrolari football-data.org ile senkron edilir.
+    api_football_leagues: str = "203"
     api_football_season: int = 2025
 
     # Gol/asist krallığı (top_stats) icin AYRI lig listesi — kulup sync'inden bagimsiz,

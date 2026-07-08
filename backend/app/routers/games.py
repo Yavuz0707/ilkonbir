@@ -1,5 +1,10 @@
 import random
+import re
 import unicodedata
+import base64
+import hashlib
+import hmac
+import json
 from dataclasses import dataclass
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -8,12 +13,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..database import get_session
+from ..config import get_settings
 from ..models import Club, Player, PlayerSeasonStat, Transfer
 from ..schemas import (
+    ClueGuessAnswerIn,
+    ClueGuessAnswerOut,
+    ClueGuessHintOut,
+    ClueGuessRoundOut,
     ClubMini,
     GameCardOut,
     GameRoundOut,
     LogoQuizRoundOut,
+    SilhouetteOptionOut,
+    SilhouetteRoundOut,
     TransferRouteClubOut,
     TransferRouteOptionOut,
     TransferRouteRoundOut,
@@ -24,7 +36,17 @@ router = APIRouter(prefix="/games", tags=["games"])
 _WINDOW = 15
 _MAX_PAIR_ATTEMPTS = 50
 _LOGO_QUIZ_OPTION_COUNT = 4
+_SILHOUETTE_OPTION_COUNT = 4
+_CLUE_GUESS_CANDIDATE_LIMIT = 250
+_CLUE_GUESS_POINTS = {1: 30, 2: 20, 3: 10}
 _TRANSFER_ROUTE_OPTION_COUNT = 4
+_TRANSFER_ROUTE_CANDIDATE_LIMIT = 800
+_MIN_TRANSFER_ROUTE_CLUBS = 3
+_UNDER_AGE_RE = re.compile(r"\b(?:u|under|sub)\s*(\d{1,2})\b")
+_TR_SUB_AGE_RE = re.compile(r"\b(?:sub|sub-)?(\d{1,2})\s*yas(?:alti)?\b")
+_YOUTH_MARKER_RE = re.compile(
+    r"\b(?:y|you|yth|youth|academy|akademi|jgd|jugend|formation|fo|for|u\s*18|u\s*17|u\s*16|u\s*15|u\s*14|u\s*13)\b"
+)
 
 
 @dataclass(frozen=True)
@@ -76,20 +98,56 @@ def _is_route_club_allowed(name: str | None) -> bool:
     normalized = _norm_name(name)
     if not normalized:
         return False
-    tokens = normalized.split()
-    token_set = set(tokens)
-    youth_tokens = {"yth", "youth", "jgd", "jugend", "formation", "for", "fo"}
-    if token_set & youth_tokens:
+
+    if _YOUTH_MARKER_RE.search(normalized):
         return False
-    for index, token in enumerate(tokens):
-        if token.startswith("u") and token[1:].isdigit() and int(token[1:]) < 19:
-            return False
-        if token.startswith("sub") and token[3:].isdigit() and int(token[3:]) < 19:
-            return False
-        if token == "sub" and index + 1 < len(tokens) and tokens[index + 1].isdigit():
-            if int(tokens[index + 1]) < 19:
+
+    for pattern in (_UNDER_AGE_RE, _TR_SUB_AGE_RE):
+        for match in pattern.finditer(normalized):
+            if int(match.group(1)) < 19:
                 return False
     return True
+
+
+def _has_senior_route_depth(transfers: list[Transfer], current_name: str | None = None) -> bool:
+    names: list[str] = []
+    for transfer in transfers:
+        for name in (transfer.from_club, transfer.to_club):
+            if not name or not _is_route_club_allowed(name):
+                continue
+            if names and _same_club_name(names[-1], name):
+                continue
+            names.append(name)
+    if current_name and _is_route_club_allowed(current_name):
+        names.append(current_name)
+    distinct = {_norm_name(name) for name in names}
+    return len(distinct) >= _MIN_TRANSFER_ROUTE_CLUBS
+
+
+async def _transfer_route_candidate_ids(session: AsyncSession) -> list[int]:
+    player_ids = (
+        await session.execute(
+            select(Transfer.player_id)
+            .where(Transfer.player_id.isnot(None), Transfer.source == "transfermarkt")
+            .group_by(Transfer.player_id)
+            .having(func.count(Transfer.id) >= 2)
+            .order_by(func.random())
+            .limit(_TRANSFER_ROUTE_CANDIDATE_LIMIT)
+        )
+    ).scalars().all()
+    if player_ids:
+        return player_ids
+
+    return (
+        await session.execute(
+            select(Transfer.player_id)
+            .where(Transfer.player_id.isnot(None))
+            .group_by(Transfer.player_id)
+            .having(func.count(Transfer.id) >= 2)
+            .order_by(func.random())
+            .limit(_TRANSFER_ROUTE_CANDIDATE_LIMIT)
+        )
+    ).scalars().all()
 
 
 async def _ranked_candidates(session: AsyncSession, category: str) -> list[_Candidate]:
@@ -204,10 +262,145 @@ def _club_option(player: Player) -> TransferRouteOptionOut:
         id=player.id,
         name=player.name,
         photo_url=player.photo_url,
-        position=player.position,
+    )
+
+
+def _silhouette_option(player: Player) -> SilhouetteOptionOut:
+    return SilhouetteOptionOut(
+        id=player.id,
+        name=player.name,
         club_name=player.club.name if player.club else None,
         club_logo=player.club.logo_url if player.club else None,
     )
+
+
+def _token_secret() -> bytes:
+    settings = get_settings()
+    secret = settings.admin_token or settings.database_url or "ilkonbir-dev-secret"
+    return secret.encode("utf-8")
+
+
+def _sign_payload(payload: dict) -> str:
+    raw = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    encoded = base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+    signature = hmac.new(_token_secret(), encoded.encode("ascii"), hashlib.sha256).digest()
+    encoded_signature = base64.urlsafe_b64encode(signature).decode("ascii").rstrip("=")
+    return f"{encoded}.{encoded_signature}"
+
+
+def _read_signed_payload(token: str) -> dict:
+    try:
+        encoded, encoded_signature = token.split(".", 1)
+    except ValueError as exc:
+        raise HTTPException(400, "Gecersiz tur tokeni") from exc
+
+    expected = hmac.new(_token_secret(), encoded.encode("ascii"), hashlib.sha256).digest()
+    actual = base64.urlsafe_b64decode(encoded_signature + "=" * (-len(encoded_signature) % 4))
+    if not hmac.compare_digest(expected, actual):
+        raise HTTPException(400, "Gecersiz tur tokeni")
+
+    raw = base64.urlsafe_b64decode(encoded + "=" * (-len(encoded) % 4))
+    return json.loads(raw.decode("utf-8"))
+
+
+def _value_band(value: int | None) -> str | None:
+    if not value or value <= 0:
+        return None
+    bands = [
+        (1_000_000, "EUR 1M altı"),
+        (5_000_000, "EUR 1M-5M arası"),
+        (10_000_000, "EUR 5M-10M arası"),
+        (20_000_000, "EUR 10M-20M arası"),
+        (50_000_000, "EUR 20M-50M arası"),
+        (100_000_000, "EUR 50M-100M arası"),
+    ]
+    for limit, label in bands:
+        if value < limit:
+            return label
+    return "EUR 100M+"
+
+
+def _stat_band(value: int) -> str:
+    if value <= 0:
+        return "Kayıtlı sezonlarda 0"
+    if value < 5:
+        return "Kayıtlı sezonlarda 1-4"
+    if value < 10:
+        return "Kayıtlı sezonlarda 5-9"
+    if value < 20:
+        return "Kayıtlı sezonlarda 10-19"
+    if value < 40:
+        return "Kayıtlı sezonlarda 20-39"
+    return "Kayıtlı sezonlarda 40+"
+
+
+def _position_label(player: Player) -> str:
+    labels = {"GK": "Kaleci", "DF": "Defans", "MF": "Orta saha", "FW": "Forvet"}
+    return player.detail_position or labels.get(player.position, player.position)
+
+
+async def _clue_hints_for(session: AsyncSession, player: Player) -> list[ClueGuessHintOut]:
+    non_club: list[ClueGuessHintOut] = []
+    if player.age:
+        non_club.append(
+            ClueGuessHintOut(
+                kind="age",
+                label="Yaş",
+                text=f"Yaklaşık {player.age} yaşında",
+            )
+        )
+    if player.position:
+        non_club.append(
+            ClueGuessHintOut(kind="position", label="Mevki", text=_position_label(player))
+        )
+    if player.nationality:
+        non_club.append(
+            ClueGuessHintOut(kind="nationality", label="Uyruk", text=player.nationality)
+        )
+    band = _value_band(player.market_value)
+    if band:
+        non_club.append(ClueGuessHintOut(kind="market_value", label="Piyasa Değeri", text=band))
+
+    totals = (
+        await session.execute(
+            select(
+                func.coalesce(func.sum(PlayerSeasonStat.goals), 0),
+                func.coalesce(func.sum(PlayerSeasonStat.assists), 0),
+            ).where(PlayerSeasonStat.player_id == player.id)
+        )
+    ).one()
+    goals, assists = int(totals[0] or 0), int(totals[1] or 0)
+    if goals > 0:
+        non_club.append(ClueGuessHintOut(kind="goals", label="Gol", text=_stat_band(goals)))
+    if assists > 0:
+        non_club.append(ClueGuessHintOut(kind="assists", label="Asist", text=_stat_band(assists)))
+
+    random.shuffle(non_club)
+    hints = non_club[:2]
+    if player.club:
+        hints.append(
+            ClueGuessHintOut(kind="club", label="Kulüp", text=player.club.name)
+        )
+    return hints[:3]
+
+
+async def _pick_clue_player(session: AsyncSession) -> tuple[Player, list[ClueGuessHintOut]]:
+    players = (
+        await session.execute(
+            select(Player)
+            .options(selectinload(Player.club))
+            .where(Player.club_id.isnot(None))
+            .order_by(func.random())
+            .limit(_CLUE_GUESS_CANDIDATE_LIMIT)
+        )
+    ).scalars().all()
+
+    for player in players:
+        hints = await _clue_hints_for(session, player)
+        non_club_count = sum(1 for hint in hints if hint.kind != "club")
+        if len(hints) >= 2 and non_club_count >= 1:
+            return player, hints
+    raise HTTPException(404, "Ipucu oyunu icin yeterli oyuncu verisi yok")
 
 
 async def _transfer_route_for(
@@ -231,6 +424,8 @@ async def _transfer_route_for(
             .order_by(Transfer.transfer_date.asc().nulls_last(), Transfer.id.asc())
         )
     ).scalars().all()
+    if not _has_senior_route_depth(transfers, player.club.name if player.club else None):
+        return []
 
     route: list[TransferRouteClubOut] = []
     for transfer in transfers:
@@ -308,7 +503,6 @@ async def _transfer_route_options(
     picked = (
         await session.execute(
             select(Player)
-            .options(selectinload(Player.club))
             .where(Player.id != correct.id)
             .order_by(func.random())
             .limit(_TRANSFER_ROUTE_OPTION_COUNT - 1)
@@ -392,29 +586,90 @@ async def logo_quiz_next(
     )
 
 
+@router.get("/silhouette/next", response_model=SilhouetteRoundOut)
+async def silhouette_next(
+    session: AsyncSession = Depends(get_session),
+    exclude_ids: str | None = Query(
+        None, description="Bu oyunda daha once sorulmus oyuncu id'leri (virgulle ayrilmis)"
+    ),
+):
+    stmt = (
+        select(Player)
+        .options(selectinload(Player.club))
+        .where(Player.photo_url.isnot(None), Player.photo_url != "")
+    )
+    players = (await session.execute(stmt)).scalars().all()
+    if len(players) < _SILHOUETTE_OPTION_COUNT:
+        raise HTTPException(404, "Siluet oyunu icin yeterli fotograflı oyuncu yok")
+
+    excluded: set[int] = set()
+    if exclude_ids:
+        for part in exclude_ids.split(","):
+            part = part.strip()
+            if part.isdigit():
+                excluded.add(int(part))
+
+    pool = [player for player in players if player.id not in excluded] or players
+    correct = random.choice(pool)
+    distractor_pool = [player for player in players if player.id != correct.id]
+    distractors = random.sample(
+        distractor_pool,
+        k=min(_SILHOUETTE_OPTION_COUNT - 1, len(distractor_pool)),
+    )
+
+    options = [correct, *distractors]
+    random.shuffle(options)
+
+    return SilhouetteRoundOut(
+        correct_id=correct.id,
+        photo_url=correct.photo_url or "",
+        options=[_silhouette_option(player) for player in options],
+    )
+
+
+@router.get("/clue-guess/next", response_model=ClueGuessRoundOut)
+async def clue_guess_next(session: AsyncSession = Depends(get_session)):
+    player, hints = await _pick_clue_player(session)
+    return ClueGuessRoundOut(
+        answer_token=_sign_payload({"player_id": player.id}),
+        hints=hints,
+    )
+
+
+@router.post("/clue-guess/answer", response_model=ClueGuessAnswerOut)
+async def clue_guess_answer(
+    payload: ClueGuessAnswerIn,
+    session: AsyncSession = Depends(get_session),
+):
+    data = _read_signed_payload(payload.answer_token)
+    player_id = data.get("player_id")
+    if not isinstance(player_id, int):
+        raise HTTPException(400, "Gecersiz tur tokeni")
+
+    player = (
+        await session.execute(
+            select(Player).options(selectinload(Player.club)).where(Player.id == player_id)
+        )
+    ).scalar_one_or_none()
+    if player is None:
+        raise HTTPException(404, "Oyuncu bulunamadi")
+
+    correct = _norm_name(payload.guess) == _norm_name(player.name)
+    hints_used = max(1, min(3, int(payload.revealed_hint_count or 1)))
+    points = _CLUE_GUESS_POINTS.get(hints_used, 0) if correct else 0
+    return ClueGuessAnswerOut(
+        correct=correct,
+        points=points,
+        correct_name=player.name,
+        photo_url=player.photo_url,
+        club_name=player.club.name if player.club else None,
+        club_logo=player.club.logo_url if player.club else None,
+    )
+
+
 @router.get("/transfer-route/next", response_model=TransferRouteRoundOut)
 async def transfer_route_next(session: AsyncSession = Depends(get_session)):
-    player_ids = (
-        await session.execute(
-            select(Transfer.player_id)
-            .where(Transfer.player_id.isnot(None), Transfer.source == "transfermarkt")
-            .group_by(Transfer.player_id)
-            .having(func.count(Transfer.id) >= 2)
-            .order_by(func.random())
-            .limit(300)
-        )
-    ).scalars().all()
-    if not player_ids:
-        player_ids = (
-            await session.execute(
-                select(Transfer.player_id)
-                .where(Transfer.player_id.isnot(None))
-                .group_by(Transfer.player_id)
-                .having(func.count(Transfer.id) >= 1)
-                .order_by(func.random())
-                .limit(300)
-            )
-        ).scalars().all()
+    player_ids = await _transfer_route_candidate_ids(session)
     if not player_ids:
         raise HTTPException(404, "Transfer rotasi icin yeterli transfer verisi yok")
 
@@ -436,7 +691,7 @@ async def transfer_route_next(session: AsyncSession = Depends(get_session)):
             continue
         route = await _transfer_route_for(session, player, club_logos, tm_club_logos)
         distinct_clubs = {_norm_name(item.name) for item in route}
-        if len(distinct_clubs) < 3:
+        if len(distinct_clubs) < _MIN_TRANSFER_ROUTE_CLUBS:
             continue
         options = await _transfer_route_options(session, player)
         return TransferRouteRoundOut(

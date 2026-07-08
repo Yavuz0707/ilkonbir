@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { api } from "../api";
+import { ConfettiBurst, SoundToggle, useGameFeedback } from "../components/GameFeedback.jsx";
 import PlayerAvatar from "../components/PlayerAvatar.jsx";
 import ScoreboardValue from "../components/ScoreboardValue.jsx";
 
@@ -114,6 +115,7 @@ export default function TransferRouteGamePage() {
   const [gameOver, setGameOver] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const feedback = useGameFeedback();
 
   const loadRound = useCallback(async ({ reset = false } = {}) => {
     setLoading(true);
@@ -149,17 +151,20 @@ export default function TransferRouteGamePage() {
       setRevealed(true);
 
       if (!correct) {
+        feedback.playWrong();
         setBestScore((best) => Math.max(best, score));
         setGameOver(true);
         return;
       }
 
       const nextScore = score + POINTS_PER_CORRECT;
+      feedback.playCorrect();
+      if (nextScore > bestScore) feedback.celebrate();
       setScore(nextScore);
       setBestScore((best) => Math.max(best, nextScore));
       window.setTimeout(() => loadRound(), ADVANCE_DELAY_MS);
     },
-    [gameOver, loadRound, revealed, round, score]
+    [bestScore, feedback, gameOver, loadRound, revealed, round, score]
   );
 
   const correctOption = round?.options.find((option) => option.id === round.correct_id);
@@ -172,6 +177,7 @@ export default function TransferRouteGamePage() {
       transition={{ duration: 0.3 }}
       className="mx-auto min-h-screen max-w-6xl px-4 pb-10 pt-6"
     >
+      <ConfettiBurst burst={feedback.burst} />
       <header className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="eyebrow">Oyunlar</p>
@@ -189,6 +195,7 @@ export default function TransferRouteGamePage() {
             <ScoreboardValue text={String(bestScore)} className="text-2xl font-semibold text-gold sm:text-3xl" />
           </div>
         </div>
+        <SoundToggle enabled={feedback.soundEnabled} onChange={feedback.setSoundEnabled} />
       </header>
 
       {loading ? (

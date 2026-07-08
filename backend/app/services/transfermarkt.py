@@ -155,6 +155,27 @@ def _club_field(item: dict, snake: str, camel: str) -> dict:
     return value if isinstance(value, dict) else {}
 
 
+def _extract_photo_url(item: dict | None) -> str | None:
+    if not isinstance(item, dict):
+        return None
+    for key in (
+        "imageUrl",
+        "image_url",
+        "image",
+        "photo",
+        "photoUrl",
+        "photo_url",
+        "portrait",
+        "portraitUrl",
+        "profileImage",
+        "profile_image",
+    ):
+        value = item.get(key)
+        if isinstance(value, str) and value.startswith(("http://", "https://")):
+            return value
+    return None
+
+
 async def sync_market_values(session: AsyncSession, club_ids: list[int] | None = None) -> str:
     """Tum kuluplerin (ya da verilen `club_ids` alt kumesinin) oyuncularina
     transfermarkt piyasa degerlerini yazar.
@@ -167,7 +188,7 @@ async def sync_market_values(session: AsyncSession, club_ids: list[int] | None =
     "MissingGreenlet" hatasiyla cokerdi (96 kulupluk sync'te canli tespit edildi).
     """
     settings = get_settings()
-    updated = skipped = 0
+    updated = skipped = photos_updated = 0
 
     stmt = select(Club.id)
     if club_ids is not None:
@@ -206,6 +227,10 @@ async def sync_market_values(session: AsyncSession, club_ids: list[int] | None =
                         player.name = tm_name
                     tm_id = match.get("id")
                     player.transfermarkt_id = int(tm_id) if tm_id else None
+                    photo_url = _extract_photo_url(match)
+                    if photo_url and not player.photo_url:
+                        player.photo_url = photo_url
+                        photos_updated += 1
                     value = _parse_value(match.get("marketValue"))
                     if value is not None:
                         player.market_value = value
@@ -219,7 +244,10 @@ async def sync_market_values(session: AsyncSession, club_ids: list[int] | None =
                 logger.warning("Transfermarkt istegi basarisiz (%s): %s", club.name, exc)
                 await session.rollback()
 
-    return f"{updated} oyuncunun piyasa degeri guncellendi, {skipped} oyuncu eslesmedi."
+    return (
+        f"{updated} oyuncunun piyasa degeri guncellendi, {skipped} oyuncu eslesmedi, "
+        f"{photos_updated} foto eklendi."
+    )
 
 
 async def sync_transfer_histories(session: AsyncSession, limit: int = 80) -> str:
