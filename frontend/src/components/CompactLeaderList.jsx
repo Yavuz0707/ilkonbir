@@ -29,14 +29,14 @@ function RowImage({ image, round, fallback }) {
 export default function CompactLeaderList({ items, emptyText = "Veri yok." }) {
   if (!items || items.length === 0) {
     return (
-      <p className="rounded-xl border border-mid/40 bg-deep/40 px-3 py-8 text-center text-xs text-ink-muted">
+      <p className="rounded-xl border border-white/10 bg-deep/45 px-3 py-8 text-center text-xs text-ink-muted">
         {emptyText}
       </p>
     );
   }
 
   return (
-    <ul className="divide-y divide-mid/30 overflow-hidden rounded-xl border border-mid/40 bg-deep/30">
+    <ul className="divide-y divide-white/10 overflow-hidden rounded-xl border border-white/10 bg-deep/40">
       {items.map((it, i) => {
         const Comp = it.onClick ? "button" : "div";
         return (
@@ -49,7 +49,7 @@ export default function CompactLeaderList({ items, emptyText = "Veri yok." }) {
             <Comp
               onClick={it.onClick}
               className={`flex w-full items-center gap-2.5 px-2.5 py-2 text-left transition ${
-                it.onClick ? "hover:bg-mid/25" : ""
+                it.onClick ? "hover:bg-white/[0.035]" : ""
               }`}
             >
               <span className="w-4 shrink-0 text-center font-mono text-xs text-ink-faint">

@@ -15,7 +15,7 @@ export default function ClubCard({ club, value }) {
       }}
       whileHover={{ y: -6 }}
       onClick={() => navigate(`/kulupler/${club.id}`)}
-      className="bracket-corners group flex flex-col items-center gap-3 rounded-2xl border border-mid/50 bg-deep/40 p-5 backdrop-blur-sm transition-shadow duration-300 hover:border-mid hover:shadow-glow"
+      className="bracket-corners group flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-deep/45 p-5 backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:border-red-400/45 hover:shadow-[0_0_24px_rgba(239,68,68,0.14)]"
     >
       {club.logo_url ? (
         <img src={club.logo_url} alt="" className="h-16 w-16 object-contain" />
@@ -28,7 +28,7 @@ export default function ClubCard({ club, value }) {
         </span>
       )}
       <span className="text-center">
-        <span className="block font-display font-bold uppercase tracking-wide text-ink transition group-hover:text-neon">
+        <span className="block font-display font-bold uppercase tracking-wide text-ink transition group-hover:text-red-300">
           {club.name}
         </span>
         <span className="mt-0.5 block text-xs text-ink-faint">{club.league}</span>

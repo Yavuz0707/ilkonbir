@@ -8,7 +8,7 @@ import json
 from dataclasses import dataclass
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -26,6 +26,7 @@ from ..schemas import (
     LogoQuizRoundOut,
     SilhouetteOptionOut,
     SilhouetteRoundOut,
+    TournamentPlayerOut,
     TransferRouteClubOut,
     TransferRouteOptionOut,
     TransferRouteRoundOut,
@@ -339,6 +340,27 @@ def _position_label(player: Player) -> str:
     return player.detail_position or labels.get(player.position, player.position)
 
 
+def _tournament_size(requested: int, available: int) -> int:
+    capped = min(max(requested, 2), 32, available)
+    size = 1
+    while size * 2 <= capped:
+        size *= 2
+    return size
+
+
+def _tournament_player(player: Player) -> TournamentPlayerOut:
+    return TournamentPlayerOut(
+        id=player.id,
+        name=player.name,
+        photo_url=player.photo_url,
+        club_name=player.club.name if player.club else None,
+        club_logo=player.club.logo_url if player.club else None,
+        position=player.position,
+        detail_position=player.detail_position,
+        market_value=player.market_value,
+    )
+
+
 async def _clue_hints_for(session: AsyncSession, player: Player) -> list[ClueGuessHintOut]:
     non_club: list[ClueGuessHintOut] = []
     if player.age:
@@ -515,6 +537,51 @@ async def _transfer_route_options(
     options = [_club_option(correct), *[_club_option(player) for player in picked]]
     random.shuffle(options)
     return options
+
+
+@router.get("/tournament/superlig-clubs", response_model=list[ClubMini])
+async def tournament_superlig_clubs(
+    session: AsyncSession = Depends(get_session),
+    size: int = Query(16, ge=2, le=32),
+):
+    stmt = (
+        select(Club)
+        .where(
+            or_(
+                Club.league.in_(["Super Lig", "Süper Lig"]),
+                func.lower(Club.league).like("%super%lig%"),
+                func.lower(Club.country).in_(["turkey", "turkiye", "türkiye"]),
+            )
+        )
+        .order_by(func.random())
+        .limit(32)
+    )
+    clubs = (await session.execute(stmt)).scalars().all()
+    final_size = _tournament_size(size, len(clubs))
+    if final_size < 2:
+        raise HTTPException(404, "Turnuva icin yeterli Super Lig kulubu yok")
+    return [ClubMini.model_validate(club) for club in clubs[:final_size]]
+
+
+@router.get("/tournament/players", response_model=list[TournamentPlayerOut])
+async def tournament_players(
+    session: AsyncSession = Depends(get_session),
+    size: int = Query(16, ge=2, le=32),
+):
+    stmt = (
+        select(Player)
+        .options(selectinload(Player.club))
+        .where(Player.market_value.isnot(None), Player.market_value > 0)
+        .order_by(Player.market_value.desc(), Player.id)
+        .limit(32)
+    )
+    players = (await session.execute(stmt)).scalars().all()
+    final_size = _tournament_size(size, len(players))
+    if final_size < 2:
+        raise HTTPException(404, "Turnuva icin yeterli oyuncu verisi yok")
+    picked = players[:final_size]
+    random.shuffle(picked)
+    return [_tournament_player(player) for player in picked]
 
 
 @router.get("/higher-lower/next", response_model=GameRoundOut)

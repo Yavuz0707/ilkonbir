@@ -1,0 +1,206 @@
+{
+  "winners": [
+    {
+      "year": 1930,
+      "host_country": "Uruguay",
+      "champion": "Uruguay",
+      "runner_up": "Argentina",
+      "third_place": "United States",
+      "fourth_place": "Yugoslavia",
+      "final_score": "4-2"
+    },
+    {
+      "year": 1934,
+      "host_country": "Italy",
+      "champion": "Italy",
+      "runner_up": "Czechoslovakia",
+      "third_place": "Germany",
+      "fourth_place": "Austria",
+      "final_score": "2-1 aet"
+    },
+    {
+      "year": 1938,
+      "host_country": "France",
+      "champion": "Italy",
+      "runner_up": "Hungary",
+      "third_place": "Brazil",
+      "fourth_place": "Sweden",
+      "final_score": "4-2"
+    },
+    {
+      "year": 1950,
+      "host_country": "Brazil",
+      "champion": "Uruguay",
+      "runner_up": "Brazil",
+      "third_place": "Sweden",
+      "fourth_place": "Spain",
+      "final_score": "2-1"
+    },
+    {
+      "year": 1954,
+      "host_country": "Switzerland",
+      "champion": "West Germany",
+      "runner_up": "Hungary",
+      "third_place": "Austria",
+      "fourth_place": "Uruguay",
+      "final_score": "3-2"
+    },
+    {
+      "year": 1958,
+      "host_country": "Sweden",
+      "champion": "Brazil",
+      "runner_up": "Sweden",
+      "third_place": "France",
+      "fourth_place": "West Germany",
+      "final_score": "5-2"
+    },
+    {
+      "year": 1962,
+      "host_country": "Chile",
+      "champion": "Brazil",
+      "runner_up": "Czechoslovakia",
+      "third_place": "Chile",
+      "fourth_place": "Yugoslavia",
+      "final_score": "3-1"
+    },
+    {
+      "year": 1966,
+      "host_country": "England",
+      "champion": "England",
+      "runner_up": "West Germany",
+      "third_place": "Portugal",
+      "fourth_place": "Soviet Union",
+      "final_score": "4-2 aet"
+    },
+    {
+      "year": 1970,
+      "host_country": "Mexico",
+      "champion": "Brazil",
+      "runner_up": "Italy",
+      "third_place": "West Germany",
+      "fourth_place": "Uruguay",
+      "final_score": "4-1"
+    },
+    {
+      "year": 1974,
+      "host_country": "West Germany",
+      "champion": "West Germany",
+      "runner_up": "Netherlands",
+      "third_place": "Poland",
+      "fourth_place": "Brazil",
+      "final_score": "2-1"
+    },
+    {
+      "year": 1978,
+      "host_country": "Argentina",
+      "champion": "Argentina",
+      "runner_up": "Netherlands",
+      "third_place": "Brazil",
+      "fourth_place": "Italy",
+      "final_score": "3-1 aet"
+    },
+    {
+      "year": 1982,
+      "host_country": "Spain",
+      "champion": "Italy",
+      "runner_up": "West Germany",
+      "third_place": "Poland",
+      "fourth_place": "France",
+      "final_score": "3-1"
+    },
+    {
+      "year": 1986,
+      "host_country": "Mexico",
+      "champion": "Argentina",
+      "runner_up": "West Germany",
+      "third_place": "France",
+      "fourth_place": "Belgium",
+      "final_score": "3-2"
+    },
+    {
+      "year": 1990,
+      "host_country": "Italy",
+      "champion": "West Germany",
+      "runner_up": "Argentina",
+      "third_place": "Italy",
+      "fourth_place": "England",
+      "final_score": "1-0"
+    },
+    {
+      "year": 1994,
+      "host_country": "United States",
+      "champion": "Brazil",
+      "runner_up": "Italy",
+      "third_place": "Sweden",
+      "fourth_place": "Bulgaria",
+      "final_score": "0-0, 3-2 pens"
+    },
+    {
+      "year": 1998,
+      "host_country": "France",
+      "champion": "France",
+      "runner_up": "Brazil",
+      "third_place": "Croatia",
+      "fourth_place": "Netherlands",
+      "final_score": "3-0"
+    },
+    {
+      "year": 2002,
+      "host_country": "South Korea/Japan",
+      "champion": "Brazil",
+      "runner_up": "Germany",
+      "third_place": "Turkey",
+      "fourth_place": "South Korea",
+      "final_score": "2-0"
+    },
+    {
+      "year": 2006,
+      "host_country": "Germany",
+      "champion": "Italy",
+      "runner_up": "France",
+      "third_place": "Germany",
+      "fourth_place": "Portugal",
+      "final_score": "1-1, 5-3 pens"
+    },
+    {
+      "year": 2010,
+      "host_country": "South Africa",
+      "champion": "Spain",
+      "runner_up": "Netherlands",
+      "third_place": "Germany",
+      "fourth_place": "Uruguay",
+      "final_score": "1-0 aet"
+    },
+    {
+      "year": 2014,
+      "host_country": "Brazil",
+      "champion": "Germany",
+      "runner_up": "Argentina",
+      "third_place": "Netherlands",
+      "fourth_place": "Brazil",
+      "final_score": "1-0 aet"
+    },
+    {
+      "year": 2018,
+      "host_country": "Russia",
+      "champion": "France",
+      "runner_up": "Croatia",
+      "third_place": "Belgium",
+      "fourth_place": "England",
+      "final_score": "4-2",
+      "top_scorer": "Harry Kane",
+      "top_scorer_goals": 6
+    },
+    {
+      "year": 2022,
+      "host_country": "Qatar",
+      "champion": "Argentina",
+      "runner_up": "France",
+      "third_place": "Croatia",
+      "fourth_place": "Morocco",
+      "final_score": "3-3, 4-2 pens",
+      "top_scorer": "Kylian Mbappe",
+      "top_scorer_goals": 8
+    }
+  ]
+}

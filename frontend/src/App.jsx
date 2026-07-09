@@ -13,6 +13,8 @@ import PlayerDetailPage from "./pages/PlayerDetailPage.jsx";
 import PlayersPage from "./pages/PlayersPage.jsx";
 import SilhouetteGamePage from "./pages/SilhouetteGamePage.jsx";
 import TransferRouteGamePage from "./pages/TransferRouteGamePage.jsx";
+import TournamentGamePage from "./pages/TournamentGamePage.jsx";
+import WorldCupPage from "./pages/WorldCupPage.jsx";
 import LineupBuilderPage from "./pages/LineupBuilderPage.jsx";
 
 export default function App() {
@@ -40,7 +42,8 @@ export default function App() {
             <Route path="/oyunlar/kim-bu-siluet" element={<SilhouetteGamePage />} />
             <Route path="/oyunlar/ipucu-tahmin" element={<ClueGuessGamePage />} />
             <Route path="/oyunlar/transfer-rotasi" element={<TransferRouteGamePage />} />
-            <Route path="/dunya-kupasi" element={<ComingSoonPage title="Dunya Kupasi" />} />
+            <Route path="/oyunlar/turnuva" element={<TournamentGamePage />} />
+            <Route path="/dunya-kupasi" element={<WorldCupPage />} />
             <Route path="/istatistikler" element={<ComingSoonPage title="Istatistikler" />} />
             <Route path="/oyuncular" element={<PlayersPage />} />
             <Route path="/oyuncular/:playerId" element={<PlayerDetailPage />} />

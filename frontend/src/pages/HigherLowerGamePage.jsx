@@ -53,12 +53,12 @@ async function fetchNonTiedRound(params) {
 function GameCard({ card, category, visible, selected, result, disabled, onPick }) {
   const tone =
     result === "correct"
-      ? "border-neon shadow-glow"
+      ? "border-cyan-300 shadow-[0_0_30px_rgba(34,211,238,0.26)]"
       : result === "wrong"
         ? "border-ember shadow-[0_0_28px_rgba(224,120,86,0.22)]"
         : selected
-          ? "border-gold/80"
-          : "border-mid/70 hover:border-neon/60";
+          ? "border-fuchsia-300/80"
+          : "border-white/10 hover:border-fuchsia-300/60";
 
   return (
     <motion.button
@@ -67,16 +67,16 @@ function GameCard({ card, category, visible, selected, result, disabled, onPick 
       onClick={onPick}
       whileHover={disabled ? undefined : { y: -3, scale: 1.01 }}
       whileTap={disabled ? undefined : { scale: 0.98 }}
-      className={`group relative flex min-h-[285px] w-full flex-col items-center justify-between overflow-hidden rounded-xl border bg-deep/75 p-4 text-center shadow-lift backdrop-blur-xl transition sm:min-h-[315px] ${tone} disabled:cursor-default`}
+      className={`group relative flex min-h-[285px] w-full flex-col items-center justify-between overflow-hidden rounded-2xl border bg-deep/78 p-4 text-center shadow-lift backdrop-blur-xl transition sm:min-h-[315px] ${tone} disabled:cursor-default`}
     >
       <span
-        className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-neon/70 to-transparent opacity-50"
+        className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-fuchsia-300/70 to-cyan-300/70 opacity-70"
         aria-hidden="true"
       />
 
       <div className="flex flex-col items-center">
         <div className="relative">
-          <span className="absolute inset-0 rounded-full bg-neon/10 blur-xl" aria-hidden="true" />
+          <span className="absolute inset-0 rounded-full bg-fuchsia-300/10 blur-xl" aria-hidden="true" />
           <PlayerAvatar player={card} size="md" />
         </div>
         <h2 className="mt-3 font-display text-xl font-bold uppercase leading-tight tracking-wide text-ink sm:text-2xl">
@@ -103,17 +103,17 @@ function GameCard({ card, category, visible, selected, result, disabled, onPick 
             </span>
           )}
         </p>
-        <div className="rounded-lg border border-mid/70 bg-night/65 px-3 py-3">
+        <div className="rounded-xl border border-white/10 bg-night/70 px-3 py-3">
           {visible ? (
             <ScoreboardValue
               text={formatMetric(category, card.value)}
-              className="justify-center text-2xl font-semibold text-neon sm:text-3xl"
+              className="justify-center text-2xl font-semibold text-cyan-300 sm:text-3xl"
             />
           ) : (
             <span className="font-display text-4xl font-bold text-gold">?</span>
           )}
         </div>
-        <span className="mt-3 inline-flex rounded-lg border border-mid/70 px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wider text-ink-muted transition group-hover:text-neon">
+        <span className="mt-3 inline-flex rounded-lg border border-white/10 px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wider text-ink-muted transition group-hover:text-fuchsia-200">
           Daha yüksek
         </span>
       </div>
@@ -225,24 +225,25 @@ export default function HigherLowerGamePage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto min-h-screen max-w-6xl px-4 pb-10 pt-6"
+      className="theme-games mx-auto min-h-screen max-w-6xl px-4 pb-10 pt-6"
     >
       <ConfettiBurst burst={feedback.burst} />
-      <header className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="section-shell relative mb-5 overflow-hidden rounded-2xl border border-white/10 bg-deep/65 p-5 shadow-lift sm:flex sm:items-end sm:justify-between">
+        <span className="motif-lines" aria-hidden="true" />
         <div>
           <p className="eyebrow">Oyunlar</p>
           <h1 className="mt-1 font-display text-3xl font-bold uppercase tracking-wide text-ink sm:text-5xl">
-            Kim Daha <span className="text-neon">İyi?</span>
+            Kim Daha <span className="text-fuchsia-300">İyi?</span>
           </h1>
         </div>
-        <div className="grid grid-cols-2 gap-3 rounded-xl border border-mid/60 bg-deep/70 px-4 py-2.5 sm:min-w-64">
+        <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl border border-white/10 bg-night/55 px-4 py-2.5 sm:mt-0 sm:min-w-64">
           <div>
             <p className="eyebrow">Skor</p>
-            <ScoreboardValue text={String(score)} className="text-2xl font-semibold text-neon sm:text-3xl" />
+            <ScoreboardValue text={String(score)} className="text-2xl font-semibold text-cyan-300 sm:text-3xl" />
           </div>
           <div>
             <p className="eyebrow">Rekor</p>
-            <ScoreboardValue text={String(bestScore)} className="text-2xl font-semibold text-gold sm:text-3xl" />
+            <ScoreboardValue text={String(bestScore)} className="text-2xl font-semibold text-fuchsia-300 sm:text-3xl" />
           </div>
         </div>
         <SoundToggle enabled={feedback.soundEnabled} onChange={feedback.setSoundEnabled} />
@@ -256,8 +257,8 @@ export default function HigherLowerGamePage() {
             onClick={() => setCategory(item.key)}
             className={`rounded-lg border px-4 py-2 font-display text-sm font-bold uppercase tracking-wide transition ${
               category === item.key
-                ? "border-neon bg-neon/10 text-neon shadow-glow-sm"
-                : "border-mid/70 bg-deep/70 text-ink-muted hover:border-neon/50 hover:text-ink"
+                ? "border-fuchsia-300 bg-fuchsia-300/10 text-fuchsia-200 shadow-[0_0_18px_rgba(217,70,239,0.18)]"
+                : "border-white/10 bg-deep/70 text-ink-muted hover:border-fuchsia-300/50 hover:text-ink"
             }`}
           >
             {item.label}
@@ -276,7 +277,7 @@ export default function HigherLowerGamePage() {
           <button
             type="button"
             onClick={loadFirstRound}
-            className="mt-4 rounded-lg border border-neon/70 px-5 py-2 font-display text-sm font-bold uppercase tracking-wide text-neon"
+            className="mt-4 rounded-lg border border-fuchsia-300/70 px-5 py-2 font-display text-sm font-bold uppercase tracking-wide text-fuchsia-200"
           >
             Tekrar dene
           </button>
@@ -322,7 +323,7 @@ export default function HigherLowerGamePage() {
               <button
                 type="button"
                 onClick={loadFirstRound}
-                className="mt-4 rounded-lg border border-neon/70 bg-neon/10 px-5 py-2 font-display text-sm font-bold uppercase tracking-wide text-neon transition hover:bg-neon/15"
+              className="mt-4 rounded-lg border border-fuchsia-300/70 bg-fuchsia-300/10 px-5 py-2 font-display text-sm font-bold uppercase tracking-wide text-fuchsia-200 transition hover:bg-fuchsia-300/15"
               >
                 Tekrar Oyna
               </button>

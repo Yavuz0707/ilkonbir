@@ -1,26 +1,40 @@
 @import "tailwindcss";
 
 @theme {
-  /* --- Gece maçı paleti --- */
-  --color-night: #071810; /* sayfa zemini */
-  --color-deep: #0d2418; /* panel/kart zemini */
-  --color-mid: #1b4332; /* kenarlık, ayraç */
-  --color-turf: #2f5d43; /* saha/çim detayları */
-  --color-moss: #52b788; /* ikincil yeşil, ikon/detay */
-  --color-neon: #6bffa0; /* birincil vurgu: aksiyon, pozitif */
-  --color-gold: #f2c14e; /* yıldız oyuncu vurgusu — cimri kullan */
-  --color-ember: #e07856; /* hata/uyarı, düşük doygunluk */
-  --color-ink: #eaf6ee; /* birincil metin */
-  --color-ink-muted: #9fbfac; /* ikincil metin */
-  --color-ink-faint: #5e7f6c; /* en soluk metin/etiket */
+  --color-night: #070a12;
+  --color-deep: #101827;
+  --color-mid: #253149;
+  --color-turf: #2c405a;
+  --color-moss: #38bdf8;
+  --color-neon: #22d3ee;
+  --color-gold: #f6c85f;
+  --color-ember: #ff6b6b;
+  --color-ink: #f3f7fb;
+  --color-ink-muted: #a8b4c7;
+  --color-ink-faint: #63708a;
 
   --font-display: "Chakra Petch", "Manrope", sans-serif;
   --font-sans: "Manrope", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
-  --shadow-glow-sm: 0 0 12px rgba(107, 255, 160, 0.22);
-  --shadow-glow: 0 0 26px rgba(107, 255, 160, 0.3);
-  --shadow-lift: 0 14px 34px rgba(0, 0, 0, 0.45);
+  --shadow-glow-sm: 0 0 14px rgba(34, 211, 238, 0.22);
+  --shadow-glow: 0 0 30px rgba(34, 211, 238, 0.28);
+  --shadow-lift: 0 18px 42px rgba(0, 0, 0, 0.48);
+}
+
+:root {
+  --accent: #22d3ee;
+  --accent-2: #8b5cf6;
+  --accent-soft: rgba(34, 211, 238, 0.12);
+  --panel: rgba(16, 24, 39, 0.78);
+  --line: rgba(148, 163, 184, 0.18);
+  --world-accent: #f6c85f;
+  --world-blue: #60a5fa;
+  --games-accent: #c084fc;
+  --games-hot: #fb7185;
+  --players-accent: #d946ef;
+  --clubs-accent: #ef4444;
+  --stats-accent: #facc15;
 }
 
 html,
@@ -31,12 +45,28 @@ body,
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-night);
+  background:
+    linear-gradient(135deg, rgba(34, 211, 238, 0.06), transparent 28%),
+    linear-gradient(225deg, rgba(139, 92, 246, 0.07), transparent 34%),
+    radial-gradient(circle at 50% 0%, rgba(96, 165, 250, 0.12), transparent 34%),
+    var(--color-night);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Eyebrow: skorbord etiketi */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.68), transparent 75%);
+}
+
 .eyebrow {
   font-family: var(--font-display);
   font-size: 0.6875rem;
@@ -46,14 +76,146 @@ body {
   color: var(--color-ink-faint);
 }
 
-/* Klavye odağı: neon ring, her etkileşimli öğede görünür */
 :focus-visible {
   outline: 2px solid var(--color-neon);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* ---- Stadyum flood-light: tek, yavaş katman ---- */
+.brand-mark {
+  position: relative;
+  display: inline-flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(34, 211, 238, 0.4);
+  background:
+    linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(139, 92, 246, 0.14)),
+    rgba(16, 24, 39, 0.92);
+  box-shadow: 0 0 22px rgba(34, 211, 238, 0.18);
+  color: var(--color-neon);
+}
+
+.brand-mark::before,
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  height: 1.2rem;
+  width: 0.18rem;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.brand-mark::before {
+  transform: translateX(-0.25rem);
+}
+
+.brand-mark::after {
+  transform: translateX(0.25rem);
+}
+
+.premium-surface {
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 42%),
+    var(--panel);
+  box-shadow: var(--shadow-lift);
+  backdrop-filter: blur(18px);
+}
+
+.section-shell {
+  position: relative;
+  overflow: hidden;
+}
+
+.section-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--accent) 16%, transparent), transparent 32%),
+    linear-gradient(260deg, color-mix(in srgb, var(--accent-2) 14%, transparent), transparent 36%);
+  opacity: 0.72;
+}
+
+.section-shell > * {
+  position: relative;
+}
+
+.motif-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.2;
+  background-image:
+    linear-gradient(120deg, transparent 0 42%, color-mix(in srgb, var(--accent) 30%, transparent) 42% 43%, transparent 43%),
+    linear-gradient(60deg, transparent 0 56%, color-mix(in srgb, var(--accent-2) 25%, transparent) 56% 57%, transparent 57%);
+  background-size: 180px 120px;
+}
+
+.theme-home {
+  --accent: #22d3ee;
+  --accent-2: #8b5cf6;
+  --accent-soft: rgba(34, 211, 238, 0.12);
+}
+
+.theme-worldcup {
+  --accent: var(--world-accent);
+  --accent-2: var(--world-blue);
+  --accent-soft: rgba(246, 200, 95, 0.13);
+}
+
+.theme-games {
+  --accent: var(--games-accent);
+  --accent-2: var(--games-hot);
+  --accent-soft: rgba(192, 132, 252, 0.14);
+}
+
+.theme-players {
+  --accent: var(--players-accent);
+  --accent-2: #60a5fa;
+}
+
+.theme-clubs {
+  --accent: var(--clubs-accent);
+  --accent-2: #60a5fa;
+}
+
+.theme-stats {
+  --accent: var(--color-neon);
+  --accent-2: var(--stats-accent);
+}
+
+.accent-text {
+  color: var(--accent);
+}
+
+.accent-border {
+  border-color: color-mix(in srgb, var(--accent) 48%, transparent);
+}
+
+.accent-glow {
+  box-shadow: 0 0 26px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.premium-tab {
+  border: 1px solid var(--line);
+  background: rgba(16, 24, 39, 0.72);
+  color: var(--color-ink-muted);
+}
+
+.premium-tab-active {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, transparent), transparent),
+    rgba(16, 24, 39, 0.84);
+  color: var(--accent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
 @keyframes floodlight-drift {
   0% {
     transform: translate(-6%, -3%) scale(1);
@@ -78,14 +240,13 @@ body {
   animation: floodlight-drift 16s ease-in-out infinite;
 }
 
-/* ---- Seçili oyuncu kartı: neon nabız ---- */
 @keyframes glow-pulse {
   0%,
   100% {
-    box-shadow: 0 0 10px rgba(107, 255, 160, 0.35), 0 0 24px rgba(107, 255, 160, 0.14);
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.3), 0 0 24px rgba(139, 92, 246, 0.14);
   }
   50% {
-    box-shadow: 0 0 18px rgba(107, 255, 160, 0.6), 0 0 42px rgba(107, 255, 160, 0.28);
+    box-shadow: 0 0 18px rgba(34, 211, 238, 0.48), 0 0 42px rgba(139, 92, 246, 0.22);
   }
 }
 
@@ -93,7 +254,6 @@ body {
   animation: glow-pulse 1.6s ease-in-out infinite;
 }
 
-/* ---- Skeleton yükleme ---- */
 @keyframes skeleton-pulse {
   0%,
   100% {
@@ -105,7 +265,7 @@ body {
 }
 
 .skeleton {
-  background: linear-gradient(120deg, var(--color-deep), #12331f, var(--color-deep));
+  background: linear-gradient(120deg, var(--color-deep), #18233a, var(--color-deep));
   animation: skeleton-pulse 1.6s ease-in-out infinite;
 }
 
@@ -123,10 +283,10 @@ body {
   }
 }
 
-/* ---- Taktik tahtası köşe braketleri (kart hover) ---- */
 .bracket-corners {
   position: relative;
 }
+
 .bracket-corners::before,
 .bracket-corners::after {
   content: "";
@@ -138,6 +298,7 @@ body {
   transition: opacity 0.25s ease, transform 0.25s ease;
   pointer-events: none;
 }
+
 .bracket-corners::before {
   top: 8px;
   left: 8px;
@@ -145,6 +306,7 @@ body {
   border-bottom: none;
   transform: translate(4px, 4px);
 }
+
 .bracket-corners::after {
   bottom: 8px;
   right: 8px;
@@ -152,6 +314,7 @@ body {
   border-top: none;
   transform: translate(-4px, -4px);
 }
+
 .bracket-corners:hover::before,
 .bracket-corners:hover::after,
 .bracket-corners:focus-visible::before,
@@ -160,25 +323,26 @@ body {
   transform: translate(0, 0);
 }
 
-/* İnce scrollbar (modal listeleri) */
 .thin-scroll::-webkit-scrollbar {
   width: 6px;
 }
+
 .thin-scroll::-webkit-scrollbar-thumb {
   background: var(--color-mid);
   border-radius: 3px;
 }
+
 .thin-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* ---- Hareket azaltma tercihi ---- */
 @media (prefers-reduced-motion: reduce) {
   .floodlight,
   .glow-pulse,
   .skeleton {
     animation: none;
   }
+
   *,
   *::before,
   *::after {

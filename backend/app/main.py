@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
 from .database import Base, engine
-from .routers import admin, clubs, formations, games, lineups, players, stats
+from .routers import admin, clubs, formations, games, lineups, players, stats, world_cup
 from .scheduler import create_scheduler
 
 logging.basicConfig(level=logging.INFO)
@@ -49,6 +49,7 @@ app.include_router(formations.router)
 app.include_router(lineups.router)
 app.include_router(stats.router)
 app.include_router(games.router)
+app.include_router(world_cup.router)
 app.include_router(admin.router)
 
 

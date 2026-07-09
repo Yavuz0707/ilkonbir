@@ -7,40 +7,48 @@ const GAMES = [
     title: "Kim Daha İyi?",
     tagline: "Higher / Lower",
     icon: "VS",
-    color: "#6bffa0",
-    glow: "rgba(107,255,160,0.22)",
+    color: "#c084fc",
+    color2: "#fb923c",
   },
   {
     to: "/oyunlar/logo-bulmaca",
     title: "Logo Bulmaca",
     tagline: "10 Tur",
     icon: "LB",
-    color: "#7dd3fc",
-    glow: "rgba(125,211,252,0.2)",
+    color: "#38bdf8",
+    color2: "#facc15",
   },
   {
     to: "/oyunlar/kim-bu-siluet",
     title: "Kim Bu Silüet?",
     tagline: "Foto Tahmini",
     icon: "Sİ",
-    color: "#f2c14e",
-    glow: "rgba(242,193,78,0.22)",
+    color: "#f472b6",
+    color2: "#60a5fa",
   },
   {
     to: "/oyunlar/ipucu-tahmin",
     title: "İpucu Tahmin",
     tagline: "3 İpucu",
     icon: "İP",
-    color: "#6ee7b7",
-    glow: "rgba(110,231,183,0.2)",
+    color: "#22d3ee",
+    color2: "#a78bfa",
   },
   {
     to: "/oyunlar/transfer-rotasi",
     title: "Transfer Rotası",
     tagline: "Kariyer İzi",
     icon: "TR",
-    color: "#e07856",
-    glow: "rgba(224,120,86,0.2)",
+    color: "#fb7185",
+    color2: "#f59e0b",
+  },
+  {
+    to: "/oyunlar/turnuva",
+    title: "Turnuva Oyunu",
+    tagline: "Eleme Turu",
+    icon: "KO",
+    color: "#60a5fa",
+    color2: "#d946ef",
   },
 ];
 
@@ -51,16 +59,20 @@ export default function GamesPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto max-w-7xl px-4 pb-20 pt-10"
+      className="theme-games mx-auto max-w-7xl px-4 pb-20 pt-8"
     >
-      <header className="mb-8 text-center">
-        <p className="eyebrow">İlk Onbir</p>
-        <h1 className="mt-2 font-display text-3xl font-bold uppercase tracking-wide text-ink sm:text-5xl">
-          Oyun<span className="text-neon">lar</span>
+      <header className="section-shell relative mb-8 overflow-hidden rounded-2xl border border-white/10 bg-deep/60 px-5 py-8 text-center shadow-lift">
+        <span className="motif-lines" aria-hidden="true" />
+        <p className="eyebrow">İlk Onbir Arcade</p>
+        <h1 className="mt-2 font-display text-4xl font-bold uppercase tracking-wide text-ink sm:text-6xl">
+          Oyun<span className="text-fuchsia-300">lar</span>
         </h1>
+        <p className="mx-auto mt-3 max-w-xl text-sm text-ink-muted">
+          Quiz, karşılaştırma ve turnuva modları için daha hızlı, enerjik ve sportif bir oyun alanı.
+        </p>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {GAMES.map((game, i) => (
           <motion.div
             key={game.to}
@@ -71,30 +83,23 @@ export default function GamesPage() {
           >
             <Link
               to={game.to}
-              style={{ borderColor: `${game.color}88`, color: game.color }}
-              className="group relative flex min-h-56 flex-col justify-between overflow-hidden rounded-xl border bg-deep/78 p-5 shadow-lift backdrop-blur-xl transition hover:shadow-[0_0_34px_var(--game-glow)]"
-              onMouseEnter={(event) => {
-                event.currentTarget.style.setProperty("--game-glow", game.glow);
-                event.currentTarget.style.borderColor = game.color;
-              }}
-              onMouseLeave={(event) => {
-                event.currentTarget.style.borderColor = `${game.color}88`;
-              }}
+              style={{ "--game-color": game.color, "--game-color-2": game.color2 }}
+              className="group relative flex min-h-56 flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-deep/75 p-5 shadow-lift backdrop-blur-xl transition hover:border-[var(--game-color)] hover:shadow-[0_0_34px_color-mix(in_srgb,var(--game-color)_22%,transparent)]"
             >
               <span
-                className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-current to-transparent opacity-45"
+                className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-[var(--game-color)] to-transparent opacity-65"
                 aria-hidden="true"
               />
               <span
-                className="absolute right-4 top-4 h-8 w-8 rounded-full border border-current/25 opacity-20 transition group-hover:scale-150 group-hover:opacity-35"
+                className="absolute right-3 top-3 h-16 w-16 rounded-full border border-[var(--game-color)]/30 opacity-15 transition group-hover:scale-125 group-hover:opacity-30"
                 aria-hidden="true"
               />
 
               <div>
                 <div className="mb-5 flex items-center justify-between gap-3">
                   <span
-                    style={{ backgroundColor: game.color }}
-                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg font-display text-lg font-bold text-night"
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl font-display text-lg font-bold text-night shadow-[0_0_20px_color-mix(in_srgb,var(--game-color)_26%,transparent)]"
+                    style={{ background: `linear-gradient(135deg, ${game.color}, ${game.color2})` }}
                     aria-hidden="true"
                   >
                     {game.icon}
@@ -106,10 +111,7 @@ export default function GamesPage() {
                 </h2>
               </div>
 
-              <span
-                style={{ borderColor: `${game.color}99`, color: game.color }}
-                className="mt-8 inline-flex w-fit items-center gap-2 rounded-lg border px-4 py-2 font-display text-sm font-bold uppercase tracking-wide transition group-hover:bg-neon/10"
-              >
+              <span className="mt-8 inline-flex w-fit items-center gap-2 rounded-xl border border-[var(--game-color)]/55 bg-[var(--game-color)]/10 px-4 py-2 font-display text-sm font-bold uppercase tracking-wide text-[var(--game-color)] transition group-hover:bg-[var(--game-color)]/15">
                 Oyna
                 <span aria-hidden="true" className="transition group-hover:translate-x-1">
                   →

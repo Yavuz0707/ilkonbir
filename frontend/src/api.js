@@ -62,6 +62,17 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   transferRouteNext: () => request("/games/transfer-route/next"),
+  tournamentSuperligClubs: (params = {}) =>
+    request(`/games/tournament/superlig-clubs?${qs(params)}`),
+  tournamentPlayers: (params = {}) => request(`/games/tournament/players?${qs(params)}`),
+  worldCupStandings: () => request("/world-cup/2026/standings"),
+  worldCupFixtures: () => request("/world-cup/2026/fixtures"),
+  worldCupRounds: () => request("/world-cup/2026/rounds"),
+  worldCupBracket: () => request("/world-cup/2026/bracket"),
+  worldCupTopScorers: () => request("/world-cup/2026/top-scorers"),
+  worldCupTopAssists: () => request("/world-cup/2026/top-assists"),
+  worldCupTeams: () => request("/world-cup/2026/teams"),
+  worldCupWinners: () => request("/world-cup/history/winners"),
   playerTrophies: (playerId) => request(`/players/${playerId}/trophies`),
   coachTrophies: (coachId) => request(`/clubs/coaches/${coachId}/trophies`),
 };

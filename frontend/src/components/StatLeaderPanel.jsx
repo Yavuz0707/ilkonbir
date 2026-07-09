@@ -73,7 +73,7 @@ export default function StatLeaderPanel({ title, metric }) {
     title: r.name,
     subtitle: r.club_name,
     value: r[metric],
-    valueClass: "text-neon",
+    valueClass: metric === "goals" ? "text-cyan-300" : "text-gold",
   }));
 
   return (

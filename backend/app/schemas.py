@@ -218,6 +218,122 @@ class TransferRouteRoundOut(BaseModel):
     correct_name: str
 
 
+class TournamentPlayerOut(BaseModel):
+    id: int
+    name: str
+    photo_url: str | None = None
+    club_name: str | None = None
+    club_logo: str | None = None
+    position: str | None = None
+    detail_position: str | None = None
+    market_value: int | None = None
+
+
+class WorldCupMeta(BaseModel):
+    source: str = "api_football"
+    league_id: int = 1
+    season: int = 2026
+    cached: bool = False
+    fetched_at: str | None = None
+    api_errors: dict | list | str | None = None
+    message: str | None = None
+
+
+class WorldCupStandingRow(BaseModel):
+    rank: int | None = None
+    team_id: int | None = None
+    team_name: str
+    team_logo: str | None = None
+    played: int = 0
+    won: int = 0
+    drawn: int = 0
+    lost: int = 0
+    goals_for: int = 0
+    goals_against: int = 0
+    goal_difference: int = 0
+    points: int = 0
+
+
+class WorldCupStandingGroup(BaseModel):
+    group: str
+    rows: list[WorldCupStandingRow]
+
+
+class WorldCupStandingsOut(WorldCupMeta):
+    groups: list[WorldCupStandingGroup] = []
+
+
+class WorldCupFixtureOut(BaseModel):
+    id: int | None = None
+    date: str | None = None
+    round: str | None = None
+    status: str | None = None
+    status_short: str | None = None
+    venue: str | None = None
+    home_team: str | None = None
+    home_logo: str | None = None
+    away_team: str | None = None
+    away_logo: str | None = None
+    home_goals: int | None = None
+    away_goals: int | None = None
+
+
+class WorldCupFixturesOut(WorldCupMeta):
+    fixtures: list[WorldCupFixtureOut] = []
+
+
+class WorldCupRoundsOut(WorldCupMeta):
+    rounds: list[str] = []
+
+
+class WorldCupBracketRound(BaseModel):
+    name: str
+    fixtures: list[WorldCupFixtureOut] = []
+
+
+class WorldCupBracketOut(WorldCupMeta):
+    rounds: list[WorldCupBracketRound] = []
+
+
+class WorldCupLeaderOut(BaseModel):
+    player_id: int | None = None
+    name: str
+    photo_url: str | None = None
+    team_name: str | None = None
+    team_logo: str | None = None
+    goals: int = 0
+    assists: int = 0
+    appearances: int | None = None
+
+
+class WorldCupLeadersOut(WorldCupMeta):
+    players: list[WorldCupLeaderOut] = []
+
+
+class WorldCupTeamOut(BaseModel):
+    id: int | None = None
+    name: str
+    code: str | None = None
+    country: str | None = None
+    logo_url: str | None = None
+
+
+class WorldCupTeamsOut(WorldCupMeta):
+    teams: list[WorldCupTeamOut] = []
+
+
+class WorldCupWinnerOut(BaseModel):
+    year: int
+    host_country: str
+    champion: str
+    runner_up: str
+    third_place: str | None = None
+    fourth_place: str | None = None
+    final_score: str | None = None
+    top_scorer: str | None = None
+    top_scorer_goals: int | None = None
+
+
 class TrophyOut(ORMModel):
     id: int
     holder_type: str

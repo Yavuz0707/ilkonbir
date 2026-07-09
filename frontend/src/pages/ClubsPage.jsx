@@ -43,18 +43,22 @@ export default function ClubsPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto max-w-6xl px-4 pb-20 pt-10"
+      className="theme-clubs mx-auto max-w-6xl px-4 pb-20 pt-10"
     >
-      <h1 className="mb-6 text-center font-display text-3xl font-bold uppercase tracking-wide text-ink">
-        Kulüpler
-      </h1>
+      <header className="section-shell relative mb-8 overflow-hidden rounded-2xl border border-white/10 bg-deep/60 px-5 py-8 text-center shadow-lift">
+        <span className="motif-lines" aria-hidden="true" />
+        <p className="eyebrow">Kulüp Merkezi</p>
+        <h1 className="font-display text-4xl font-bold uppercase tracking-wide text-ink sm:text-6xl">
+          Kulüp<span className="text-red-400">ler</span>
+        </h1>
+      </header>
       <div className="mb-8 space-y-4">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Kulüp ara..."
           aria-label="Kulüp ara"
-          className="mx-auto block w-full max-w-md rounded-xl border border-mid bg-deep/70 px-4 py-2.5 text-ink placeholder-ink-faint outline-none backdrop-blur transition focus:border-neon focus:shadow-glow-sm"
+          className="premium-surface mx-auto block w-full max-w-md rounded-xl px-4 py-3 text-ink placeholder-ink-faint outline-none transition focus:border-red-400"
         />
         <LeagueFilter leagues={leagues} value={league} onChange={setLeague} />
       </div>

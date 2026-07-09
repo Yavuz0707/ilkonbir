@@ -43,24 +43,25 @@ export default function PlayersPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="mx-auto max-w-6xl px-4 pb-20 pt-10"
+      className="theme-players mx-auto max-w-6xl px-4 pb-20 pt-10"
     >
-      <header className="mb-8 flex flex-col gap-4 text-center">
+      <header className="section-shell relative mb-8 overflow-hidden rounded-2xl border border-white/10 bg-deep/60 px-5 py-8 text-center shadow-lift">
+        <span className="motif-lines" aria-hidden="true" />
         <p className="eyebrow">Oyuncular</p>
         <h1 className="font-display text-4xl font-bold uppercase tracking-wide text-ink sm:text-6xl">
-          Oyuncu <span className="text-neon">Merkezi</span>
+          Oyuncu <span className="text-fuchsia-300">Merkezi</span>
         </h1>
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-3 sm:flex-row">
+        <div className="mx-auto mt-5 flex w-full max-w-2xl flex-col gap-3 sm:flex-row">
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Oyuncu ara..."
-            className="min-w-0 flex-1 rounded-xl border border-mid bg-deep/70 px-4 py-3 text-ink outline-none transition placeholder:text-ink-faint focus:border-neon focus:shadow-glow-sm"
+            className="premium-surface min-w-0 flex-1 rounded-xl px-4 py-3 text-ink outline-none transition placeholder:text-ink-faint focus:border-fuchsia-300"
           />
           <select
             value={position}
             onChange={(event) => setPosition(event.target.value)}
-            className="rounded-xl border border-mid bg-deep/70 px-4 py-3 font-display text-sm font-bold uppercase text-ink outline-none transition focus:border-neon"
+            className="premium-surface rounded-xl px-4 py-3 font-display text-sm font-bold uppercase text-ink outline-none transition focus:border-fuchsia-300"
           >
             <option value="">Tum mevkiler</option>
             {Object.entries(ROLE_LABELS).map(([key, label]) => (
@@ -93,11 +94,11 @@ export default function PlayersPage() {
             >
               <Link
                 to={`/oyuncular/${player.id}`}
-                className="group flex h-full items-center gap-4 rounded-xl border border-mid/60 bg-deep/60 p-4 shadow-lift transition hover:-translate-y-1 hover:border-neon/55 hover:bg-deep/80"
+                className="group flex h-full items-center gap-4 rounded-2xl border border-white/10 bg-deep/60 p-4 shadow-lift transition hover:-translate-y-1 hover:border-fuchsia-300/55 hover:bg-deep/80"
               >
                 <PlayerAvatar player={player} size="sm" />
                 <div className="min-w-0 flex-1">
-                  <h2 className="truncate font-display text-lg font-bold uppercase tracking-wide text-ink group-hover:text-neon">
+                  <h2 className="truncate font-display text-lg font-bold uppercase tracking-wide text-ink group-hover:text-fuchsia-200">
                     {player.name}
                   </h2>
                   <p className="mt-1 truncate text-sm text-ink-muted">

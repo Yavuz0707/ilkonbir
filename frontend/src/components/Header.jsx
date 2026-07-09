@@ -4,12 +4,20 @@ import { AnimatePresence, motion } from "framer-motion";
 
 const NAV = [
   { to: "/", label: "Ana Sayfa", end: true },
-  { to: "/oyunlar", label: "Oyunlar" },
-  { to: "/kulupler", label: "Kulüpler" },
-  { to: "/dunya-kupasi", label: "Dünya Kupası", soon: true },
-  { to: "/istatistikler", label: "İstatistikler", soon: true },
-  { to: "/oyuncular", label: "Oyuncular" },
+  { to: "/oyunlar", label: "Oyunlar", tone: "games" },
+  { to: "/kulupler", label: "Kulüpler", tone: "clubs" },
+  { to: "/dunya-kupasi", label: "Dünya Kupası", tone: "world" },
+  { to: "/istatistikler", label: "İstatistikler", soon: true, tone: "stats" },
+  { to: "/oyuncular", label: "Oyuncular", tone: "players" },
 ];
+
+const TONES = {
+  games: "#c084fc",
+  clubs: "#ef4444",
+  world: "#f6c85f",
+  stats: "#facc15",
+  players: "#d946ef",
+};
 
 function NavItem({ item, onClick }) {
   return (
@@ -17,9 +25,12 @@ function NavItem({ item, onClick }) {
       to={item.to}
       end={item.end}
       onClick={onClick}
+      style={{ "--nav-tone": TONES[item.tone] || "var(--color-neon)" }}
       className={({ isActive }) =>
-        `relative rounded-lg px-3 py-1.5 font-display text-sm font-bold uppercase tracking-wider transition ${
-          isActive ? "text-neon" : "text-ink-muted hover:text-ink"
+        `relative rounded-xl px-3 py-2 font-display text-sm font-bold uppercase tracking-wider transition ${
+          isActive
+            ? "bg-white/[0.035] text-[var(--nav-tone)] shadow-[0_0_18px_color-mix(in_srgb,var(--nav-tone)_18%,transparent)]"
+            : "text-ink-muted hover:bg-white/[0.025] hover:text-ink"
         }`
       }
     >
@@ -28,7 +39,7 @@ function NavItem({ item, onClick }) {
           <span className="flex items-center gap-1.5">
             {item.label}
             {item.soon && (
-              <span className="rounded bg-mid/60 px-1 py-0.5 font-sans text-[9px] font-semibold uppercase tracking-normal text-ink-faint">
+              <span className="rounded-md border border-mid/70 bg-deep/70 px-1.5 py-0.5 font-sans text-[9px] font-semibold uppercase tracking-normal text-ink-faint">
                 Yakında
               </span>
             )}
@@ -36,7 +47,7 @@ function NavItem({ item, onClick }) {
           {isActive && (
             <motion.span
               layoutId="nav-underline"
-              className="absolute inset-x-2 -bottom-0.5 h-0.5 rounded-full bg-neon shadow-glow-sm"
+              className="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-[var(--nav-tone)]"
             />
           )}
         </>
@@ -49,26 +60,24 @@ export default function Header() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-mid/50 bg-night/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link to="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <span className="text-xl">⚽</span>
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-night/85 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+        <Link to="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
+          <span className="brand-mark" aria-hidden="true" />
           <span className="font-display text-lg font-bold uppercase tracking-widest text-ink">
             İlk<span className="text-neon">Onbir</span>
           </span>
         </Link>
 
-        {/* Masaüstü menü */}
         <nav className="hidden items-center gap-1 md:flex">
           {NAV.map((item) => (
             <NavItem key={item.to} item={item} />
           ))}
         </nav>
 
-        {/* Mobil hamburger */}
         <button
           onClick={() => setOpen((o) => !o)}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-mid/60 text-ink-muted transition hover:text-neon md:hidden"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-deep/70 text-ink-muted transition hover:text-neon md:hidden"
           aria-label="Menüyü aç/kapat"
           aria-expanded={open}
         >
@@ -84,7 +93,6 @@ export default function Header() {
         </button>
       </div>
 
-      {/* Mobil açılır menü */}
       <AnimatePresence>
         {open && (
           <motion.nav
@@ -92,7 +100,7 @@ export default function Header() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden border-t border-mid/40 md:hidden"
+            className="overflow-hidden border-t border-white/10 bg-night/95 md:hidden"
           >
             <div className="flex flex-col gap-1 px-4 py-3">
               {NAV.map((item) => (
