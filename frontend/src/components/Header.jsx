@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
 const NAV = [
@@ -7,17 +7,36 @@ const NAV = [
   { to: "/oyunlar", label: "Oyunlar", tone: "games" },
   { to: "/kulupler", label: "Kulüpler", tone: "clubs" },
   { to: "/dunya-kupasi", label: "Dünya Kupası", tone: "world" },
-  { to: "/istatistikler", label: "İstatistikler", soon: true, tone: "stats" },
+  { to: "/istatistikler", label: "İstatistikler", tone: "stats" },
   { to: "/oyuncular", label: "Oyuncular", tone: "players" },
 ];
 
 const TONES = {
-  games: "#c084fc",
-  clubs: "#ef4444",
-  world: "#f6c85f",
-  stats: "#facc15",
-  players: "#d946ef",
+  home: "#27d8ff",
+  games: "#9b5cff",
+  clubs: "#e74f58",
+  world: "#d6b45f",
+  stats: "#31e6cf",
+  players: "#2bd8ff",
 };
+
+const TONE_2 = {
+  home: "#7c6dff",
+  games: "#ff8a3d",
+  clubs: "#aeb7c8",
+  world: "#2f5c9c",
+  stats: "#f3d35f",
+  players: "#9b5cff",
+};
+
+function toneForPath(pathname) {
+  if (pathname.startsWith("/oyunlar")) return "games";
+  if (pathname.startsWith("/kulupler") || pathname.startsWith("/club/")) return "clubs";
+  if (pathname.startsWith("/dunya-kupasi")) return "world";
+  if (pathname.startsWith("/istatistikler")) return "stats";
+  if (pathname.startsWith("/oyuncular")) return "players";
+  return "home";
+}
 
 function NavItem({ item, onClick }) {
   return (
@@ -27,10 +46,10 @@ function NavItem({ item, onClick }) {
       onClick={onClick}
       style={{ "--nav-tone": TONES[item.tone] || "var(--color-neon)" }}
       className={({ isActive }) =>
-        `relative rounded-xl px-3 py-2 font-display text-sm font-bold uppercase tracking-wider transition ${
+        `relative rounded-lg px-3 py-2 font-sans text-sm font-bold uppercase tracking-[0.04em] transition ${
           isActive
-            ? "bg-white/[0.035] text-[var(--nav-tone)] shadow-[0_0_18px_color-mix(in_srgb,var(--nav-tone)_18%,transparent)]"
-            : "text-ink-muted hover:bg-white/[0.025] hover:text-ink"
+            ? "bg-white/[0.045] text-[var(--nav-tone)] shadow-[0_0_18px_color-mix(in_srgb,var(--nav-tone)_16%,transparent)]"
+            : "text-ink-muted hover:bg-white/[0.035] hover:text-ink"
         }`
       }
     >
@@ -39,7 +58,7 @@ function NavItem({ item, onClick }) {
           <span className="flex items-center gap-1.5">
             {item.label}
             {item.soon && (
-              <span className="rounded-md border border-mid/70 bg-deep/70 px-1.5 py-0.5 font-sans text-[9px] font-semibold uppercase tracking-normal text-ink-faint">
+              <span className="rounded border border-white/10 bg-void/80 px-1.5 py-0.5 font-sans text-[9px] font-semibold uppercase tracking-normal text-ink-faint">
                 Yakında
               </span>
             )}
@@ -47,7 +66,7 @@ function NavItem({ item, onClick }) {
           {isActive && (
             <motion.span
               layoutId="nav-underline"
-              className="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-[var(--nav-tone)]"
+              className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-[var(--nav-tone)]"
             />
           )}
         </>
@@ -58,14 +77,31 @@ function NavItem({ item, onClick }) {
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const activeTone = toneForPath(location.pathname);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-night/85 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-        <Link to="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
-          <span className="brand-mark" aria-hidden="true" />
-          <span className="font-display text-lg font-bold uppercase tracking-widest text-ink">
-            İlk<span className="text-neon">Onbir</span>
+    <header
+      className="glass-nav sticky top-0 z-40"
+      style={{
+        "--accent": TONES[activeTone],
+        "--accent-2": TONE_2[activeTone],
+        "--accent-soft": `color-mix(in srgb, ${TONES[activeTone]} 13%, transparent)`,
+        "--accent-line": `color-mix(in srgb, ${TONES[activeTone]} 34%, transparent)`,
+      }}
+    >
+      <div className="mx-auto flex max-w-[1366px] items-center justify-between px-4 py-3">
+        <Link to="/" className="group flex items-center gap-3" onClick={() => setOpen(false)}>
+          <span className="brand-mark" aria-hidden="true">
+            <span className="brand-xi">XI</span>
+          </span>
+          <span className="leading-none">
+            <span className="block font-display text-xl font-extrabold uppercase tracking-normal text-ink sm:text-2xl">
+              İlk<span className="accent-text">Onbir</span>
+            </span>
+            <span className="mt-0.5 hidden font-mono text-[9px] font-bold uppercase tracking-[0.22em] text-ink-faint sm:block">
+              squad lab
+            </span>
           </span>
         </Link>
 
@@ -76,8 +112,9 @@ export default function Header() {
         </nav>
 
         <button
+          type="button"
           onClick={() => setOpen((o) => !o)}
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-deep/70 text-ink-muted transition hover:text-neon md:hidden"
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-void/75 text-ink-muted transition hover:border-[var(--accent-line)] hover:text-ink md:hidden"
           aria-label="Menüyü aç/kapat"
           aria-expanded={open}
         >

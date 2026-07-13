@@ -1,18 +1,23 @@
-/** Lig filtre chip'leri (yalnizca lig adlari; "Tümü" yok, her zaman bir lig secili). */
 export default function LeagueFilter({ leagues, value, onChange }) {
   if (leagues.length <= 1) return null;
+
   const chip = (active) =>
-    `rounded-full px-4 py-1.5 font-display text-sm font-bold tracking-wide transition ${
+    `rounded-lg border px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.12em] transition ${
       active
-        ? "bg-neon text-night shadow-glow-sm"
-        : "border border-mid/70 bg-deep/50 text-ink-muted hover:text-ink"
+        ? "segment-button-active"
+        : "segment-button hover:border-[var(--accent-line)] hover:text-ink"
     }`;
 
   return (
-    <div className="flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="Lig filtresi">
+    <div
+      className="mx-auto flex w-fit max-w-full flex-wrap justify-center gap-2 rounded-xl border border-white/10 bg-void/35 p-1.5"
+      role="radiogroup"
+      aria-label="Lig filtresi"
+    >
       {leagues.map((l) => (
         <button
           key={l}
+          type="button"
           role="radio"
           aria-checked={value === l}
           onClick={() => onChange(l)}

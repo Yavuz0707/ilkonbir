@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     # Bu yüzden hedef sezon açıkça sabitleniyor; yeni sezon gerçekten başlayınca elle güncellenir.
     football_data_org_season: int = 2025
 
+    # Google Gemini API credentials. Backend-only; do not expose through VITE_*.
+    google_api_key: str | None = None
+    gemini_api_key: str | None = None
+
     # felipeall/transfermarkt-api servisi (docker-compose ile ayaga kalkar)
     transfermarkt_api_url: str = "http://localhost:8001"
 
@@ -65,6 +69,10 @@ class Settings(BaseSettings):
     @property
     def football_data_org_competition_codes(self) -> list[str]:
         return [x.strip() for x in self.football_data_org_competitions.split(",") if x.strip()]
+
+    @property
+    def effective_gemini_api_key(self) -> str | None:
+        return self.gemini_api_key or self.google_api_key
 
     @property
     def cors_origin_list(self) -> list[str]:

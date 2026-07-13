@@ -37,7 +37,7 @@ export default function BenchList({ club, lineup, onPickPlayer, activePlayerId }
           Tüm kadro sahada.
         </p>
       ) : (
-        <ul className="thin-scroll -mr-1 max-h-[42vh] space-y-1 overflow-y-auto pr-1 lg:max-h-none lg:flex-1">
+        <ul className="thin-scroll -mr-1 max-h-[42vh] space-y-1 overflow-y-auto pr-1 lg:max-h-[310px]">
           {bench.map((p) => {
             const activePlace = p.id === activePlayerId;
             return (

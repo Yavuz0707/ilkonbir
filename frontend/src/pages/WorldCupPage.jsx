@@ -4,12 +4,12 @@ import { api } from "../api";
 
 const TABS = [
   { key: "standings", label: "Puan Durumu" },
-  { key: "fixtures", label: "Maclar" },
-  { key: "bracket", label: "Eleme Agaci" },
-  { key: "scorers", label: "Gol Kralligi" },
-  { key: "assists", label: "Asist Kralligi" },
-  { key: "teams", label: "Takimlar" },
-  { key: "history", label: "Gecmis Sampiyonlar" },
+  { key: "fixtures", label: "Maçlar" },
+  { key: "bracket", label: "Eleme Ağacı" },
+  { key: "scorers", label: "Gol Krallığı" },
+  { key: "assists", label: "Asist Krallığı" },
+  { key: "teams", label: "Takımlar" },
+  { key: "history", label: "Geçmiş Şampiyonlar" },
 ];
 
 const LOADERS = {
@@ -579,16 +579,16 @@ export default function WorldCupPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="theme-worldcup mx-auto max-w-7xl px-4 pb-12 pt-8"
+      className="theme-worldcup page-shell pb-12 pt-8"
     >
-      <header className="section-shell relative mb-6 overflow-hidden rounded-2xl border border-gold/20 bg-[#081326]/80 px-5 py-8 shadow-lift">
+      <header className="page-hero mb-6 px-5 py-8">
         <span className="motif-lines" aria-hidden="true" />
         <div>
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/35 bg-gold/10 font-display text-xl font-bold text-gold shadow-[0_0_24px_rgba(246,200,95,0.16)]">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl border border-gold/35 bg-gold/10 font-display text-xl font-black text-gold shadow-[0_0_24px_rgba(214,180,95,0.16)]">
             WC
           </div>
           <p className="eyebrow text-gold/80">Ilk Onbir Turnuva Merkezi</p>
-          <h1 className="mt-1 font-display text-4xl font-bold uppercase tracking-wide text-ink sm:text-6xl">
+          <h1 className="mt-1 font-display text-5xl font-black uppercase tracking-wide text-ink sm:text-7xl">
             Dunya <span className="text-gold">Kupasi</span>
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-muted">
@@ -600,8 +600,8 @@ export default function WorldCupPage() {
               ["104", "Mac"],
               ["12", "Grup"],
             ].map(([value, label]) => (
-              <div key={label} className="rounded-xl border border-white/10 bg-night/35 px-4 py-3">
-                <p className="font-display text-2xl font-bold text-gold">{value}</p>
+              <div key={label} className="metric-tile px-4 py-3">
+                <p className="font-display text-2xl font-black text-gold">{value}</p>
                 <p className="eyebrow">{label}</p>
               </div>
             ))}

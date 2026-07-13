@@ -5,19 +5,9 @@ import MiniDropdown from "./MiniDropdown.jsx";
 
 const seasonLabel = (y) => (y == null ? "" : `${y}-${String((y + 1) % 100).padStart(2, "0")}`);
 
-/**
- * Gol/Asist krallığı paneli. Kendi lig ("Genel" = tüm ligler, her biri kendi
- * en güncel sezonuyla) + sezon seçicisini yönetir; veriyi ve competitions
- * listesini kendi metriğine (goals/assists) göre kendisi çeker.
- *
- * Sezon seçici yalnızca belirli bir lig seçiliyken anlamlı: farklı kaynaklar
- * (football-data.org 2025-26, API-Football 2024-25) farklı sezon uzayları
- * kullandığı için "Genel" görünümde tek bir global sezon dayatılmaz — her lig
- * kendi en güncel verisiyle karşılaştırılır.
- */
 export default function StatLeaderPanel({ title, metric }) {
   const [leagues, setLeagues] = useState([]);
-  const [leagueId, setLeagueId] = useState(null); // null = Genel
+  const [leagueId, setLeagueId] = useState(null);
   const [season, setSeason] = useState(null);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +24,6 @@ export default function StatLeaderPanel({ title, metric }) {
     [leagues, leagueId]
   );
 
-  // Lig degisince o ligin en guncel sezonuna sifirla
   useEffect(() => {
     setSeason(selectedLeague ? selectedLeague.latest_season : null);
   }, [selectedLeague]);
@@ -79,7 +68,7 @@ export default function StatLeaderPanel({ title, metric }) {
   return (
     <section className="flex flex-col">
       <div className="mb-3">
-        <h2 className="font-display text-lg font-bold uppercase tracking-wide text-ink">{title}</h2>
+        <h2 className="font-display text-xl font-black uppercase tracking-wide text-ink">{title}</h2>
         <div className="mt-2 flex items-center gap-2">
           <MiniDropdown options={leagueOptions} value={leagueId} onChange={setLeagueId} />
           {selectedLeague && seasonOptions.length > 1 && (

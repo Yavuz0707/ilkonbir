@@ -1,0 +1,716 @@
+{
+  "categories": [
+    {
+      "id": "most_expensive_transfer",
+      "title": "En Pahalı Transferler",
+      "group": "Transfer / Değer Rekorları",
+      "group_id": "transfers",
+      "description": "Futbol tarihinde tek transferde ödenen en yüksek bonservis ücretleri.",
+      "metric_label": "Bonservis",
+      "unit": "EUR",
+      "verification_status": "verified",
+      "updated_at": "2026-07-10",
+      "sources": [
+        {
+          "name": "Guinness World Records",
+          "url": "https://www.guinnessworldrecords.com/world-records/most-expensive-football-player-%28soccer-player%29-single-transfer",
+          "type": "reference"
+        },
+        {
+          "name": "Transfermarkt",
+          "url": "https://www.transfermarkt.com/statistik/transferrekorde",
+          "type": "database"
+        }
+      ],
+      "entries": [
+        {
+          "rank": 1,
+          "name": "Neymar",
+          "country": "Brazil",
+          "club_or_team": "Barcelona -> Paris Saint-Germain",
+          "value": 222000000,
+          "display_value": "€222M",
+          "note": "Release clause activation, August 2017.",
+          "image_url": "/records/neymar.jpg",
+          "source_note": "Guinness and Transfermarkt list Neymar's PSG move as the world record transfer.",
+          "verification_status": "verified"
+        },
+        {
+          "rank": 2,
+          "name": "Kylian Mbappé",
+          "country": "France",
+          "club_or_team": "Monaco -> Paris Saint-Germain",
+          "value": 180000000,
+          "display_value": "€180M",
+          "note": "Permanent transfer after loan, 2018.",
+          "image_url": "/records/kylian_mbappe.jpg",
+          "source_note": "Transfermarkt transfer records.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 3,
+          "name": "Philippe Coutinho",
+          "country": "Brazil",
+          "club_or_team": "Liverpool -> Barcelona",
+          "value": 135000000,
+          "display_value": "€135M",
+          "note": "Transfermarkt record fee list.",
+          "image_url": "/records/philippe_coutinho.jpg",
+          "source_note": "Transfermarkt transfer records.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 3,
+          "name": "Ousmane Dembélé",
+          "country": "France",
+          "club_or_team": "Borussia Dortmund -> Barcelona",
+          "value": 135000000,
+          "display_value": "€135M",
+          "note": "Tied fee in Transfermarkt record list.",
+          "image_url": "/records/ousmane_dembele.jpg",
+          "source_note": "Transfermarkt transfer records.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 5,
+          "name": "João Félix",
+          "country": "Portugal",
+          "club_or_team": "Benfica -> Atlético Madrid",
+          "value": 127200000,
+          "display_value": "€127.2M",
+          "note": "Transfermarkt record fee list.",
+          "image_url": "/records/joao_felix.jpg",
+          "source_note": "Transfermarkt transfer records.",
+          "verification_status": "partial"
+        }
+      ]
+    },
+    {
+      "id": "ballon_dor_wins",
+      "title": "En Çok Ballon d'Or",
+      "group": "Ödül Rekorları",
+      "group_id": "awards",
+      "description": "Erkeklerde Ballon d'Or ödülünü en çok kazanan futbolcular.",
+      "metric_label": "Ödül",
+      "unit": "adet",
+      "verification_status": "verified",
+      "updated_at": "2026-07-10",
+      "sources": [
+        {
+          "name": "Ballon d'Or",
+          "url": "https://ballondor.com/players/lionel-messi-3399",
+          "type": "official"
+        },
+        {
+          "name": "Guinness World Records",
+          "url": "https://www.guinnessworldrecords.com/world-records/102717-most-wins-of-the-ballon-dor",
+          "type": "reference"
+        },
+        {
+          "name": "UEFA - Ballon d'Or history",
+          "url": "https://www.uefa.com/ballondor/news/0287-195e642735da-0594342b9554-1000--history-of-the-ballon-d-or-all-the-winners/",
+          "type": "reference"
+        }
+      ],
+      "entries": [
+        {
+          "rank": 1,
+          "name": "Lionel Messi",
+          "country": "Argentina",
+          "club_or_team": "Argentina",
+          "value": 8,
+          "display_value": "8 Ballon d'Or",
+          "note": "2009, 2010, 2011, 2012, 2015, 2019, 2021, 2023.",
+          "image_url": "/records/lionel_messi.jpg",
+          "source_note": "Official Ballon d'Or profile and Guinness agree on eight wins.",
+          "verification_status": "verified"
+        },
+        {
+          "rank": 2,
+          "name": "Cristiano Ronaldo",
+          "country": "Portugal",
+          "club_or_team": "Portugal",
+          "value": 5,
+          "display_value": "5 Ballon d'Or",
+          "note": "2008, 2013, 2014, 2016, 2017.",
+          "image_url": "/records/cristiano_ronaldo.jpg",
+          "source_note": "UEFA Ballon d'Or winners history.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 3,
+          "name": "Michel Platini",
+          "country": "France",
+          "club_or_team": "France",
+          "value": 3,
+          "display_value": "3 Ballon d'Or",
+          "note": "1983, 1984, 1985.",
+          "image_url": "/records/michel_platini.jpg",
+          "source_note": "UEFA Ballon d'Or winners history.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 3,
+          "name": "Johan Cruyff",
+          "country": "Netherlands",
+          "club_or_team": "Netherlands",
+          "value": 3,
+          "display_value": "3 Ballon d'Or",
+          "note": "1971, 1973, 1974.",
+          "image_url": "/records/johan_cruyff.jpg",
+          "source_note": "UEFA Ballon d'Or winners history.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 3,
+          "name": "Marco van Basten",
+          "country": "Netherlands",
+          "club_or_team": "Netherlands",
+          "value": 3,
+          "display_value": "3 Ballon d'Or",
+          "note": "1988, 1989, 1992.",
+          "image_url": "/records/marco_van_basten.jpg",
+          "source_note": "UEFA Ballon d'Or winners history.",
+          "verification_status": "partial"
+        }
+      ]
+    },
+    {
+      "id": "the_best_fifa_mens_player_wins",
+      "title": "En Çok The Best FIFA Erkek Oyuncu",
+      "group": "Ödül Rekorları",
+      "group_id": "awards",
+      "description": "The Best FIFA Men's Player ödülünü en çok kazanan futbolcular.",
+      "metric_label": "Ödül",
+      "unit": "adet",
+      "verification_status": "partial",
+      "updated_at": "2026-07-10",
+      "sources": [
+        {
+          "name": "FIFA - All award winners history",
+          "url": "https://www.fifa.com/en/the-best-fifa-football-awards/2025/articles/all-award-winners-history",
+          "type": "official"
+        },
+        {
+          "name": "FIFA - Messi trophy wins",
+          "url": "https://www.fifa.com/en/the-best-fifa-football-awards/articles/the-world-cup-the-best-and-all-of-lionel-messis-trophy-wins",
+          "type": "official"
+        }
+      ],
+      "entries": [
+        {
+          "rank": 1,
+          "name": "Lionel Messi",
+          "country": "Argentina",
+          "club_or_team": "Argentina",
+          "value": 3,
+          "display_value": "3 ödül",
+          "note": "2019, 2022, 2023.",
+          "image_url": "/records/lionel_messi.jpg",
+          "source_note": "FIFA winner history and FIFA Messi trophy page.",
+          "verification_status": "verified"
+        },
+        {
+          "rank": 2,
+          "name": "Cristiano Ronaldo",
+          "country": "Portugal",
+          "club_or_team": "Portugal",
+          "value": 2,
+          "display_value": "2 ödül",
+          "note": "2016, 2017.",
+          "image_url": "/records/cristiano_ronaldo.jpg",
+          "source_note": "FIFA winner history.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 2,
+          "name": "Robert Lewandowski",
+          "country": "Poland",
+          "club_or_team": "Poland",
+          "value": 2,
+          "display_value": "2 ödül",
+          "note": "2020, 2021.",
+          "image_url": "/records/robert_lewandowski.jpg",
+          "source_note": "FIFA winner history.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 4,
+          "name": "Luka Modrić",
+          "country": "Croatia",
+          "club_or_team": "Croatia",
+          "value": 1,
+          "display_value": "1 ödül",
+          "note": "2018.",
+          "image_url": "/records/luka_modric.jpg",
+          "source_note": "FIFA winner history.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 4,
+          "name": "Karim Benzema",
+          "country": "France",
+          "club_or_team": "France",
+          "value": 1,
+          "display_value": "1 ödül",
+          "note": "2022 voting cycle uses FIFA winner history; single winners are tied.",
+          "image_url": "/records/karim_benzema.jpg",
+          "source_note": "FIFA winner history.",
+          "verification_status": "needs_review"
+        }
+      ]
+    },
+    {
+      "id": "european_golden_shoe_wins",
+      "title": "En Çok Avrupa Altın Ayakkabı",
+      "group": "Ödül Rekorları",
+      "group_id": "awards",
+      "description": "European Golden Shoe / Soulier d'Or ödülünü en çok kazanan futbolcular.",
+      "metric_label": "Ödül",
+      "unit": "adet",
+      "verification_status": "verified",
+      "updated_at": "2026-07-10",
+      "sources": [
+        {
+          "name": "UEFA",
+          "url": "https://www.uefa.com/uefachampionsleague/news/0240-0e9820faf5bc-aef12ea39713-1000--how-do-gerd-muller-lionel-messi-and-cristiano-ronaldo-co/",
+          "type": "reference"
+        },
+        {
+          "name": "RSSSF",
+          "url": "https://www.rsssf.org/miscellaneous/gboot.html",
+          "type": "reference"
+        }
+      ],
+      "entries": [
+        {
+          "rank": 1,
+          "name": "Lionel Messi",
+          "country": "Argentina",
+          "club_or_team": "Barcelona",
+          "value": 6,
+          "display_value": "6 Altın Ayakkabı",
+          "note": "2010, 2012, 2013, 2017, 2018, 2019.",
+          "image_url": "/records/lionel_messi.jpg",
+          "source_note": "UEFA summary and RSSSF Golden Boot archive.",
+          "verification_status": "verified"
+        },
+        {
+          "rank": 2,
+          "name": "Cristiano Ronaldo",
+          "country": "Portugal",
+          "club_or_team": "Manchester United / Real Madrid",
+          "value": 4,
+          "display_value": "4 Altın Ayakkabı",
+          "note": "2008, 2011, 2014, 2015.",
+          "image_url": "/records/cristiano_ronaldo.jpg",
+          "source_note": "UEFA summary.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 3,
+          "name": "Eusébio",
+          "country": "Portugal",
+          "club_or_team": "Benfica",
+          "value": 2,
+          "display_value": "2 Altın Ayakkabı",
+          "note": "Multiple players are tied on two wins.",
+          "image_url": "/records/eusebio.jpg",
+          "source_note": "RSSSF Golden Boot archive.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 3,
+          "name": "Gerd Müller",
+          "country": "Germany",
+          "club_or_team": "Bayern Munich",
+          "value": 2,
+          "display_value": "2 Altın Ayakkabı",
+          "note": "Multiple players are tied on two wins.",
+          "image_url": "/records/gerd_muller.jpg",
+          "source_note": "RSSSF Golden Boot archive.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 3,
+          "name": "Thierry Henry",
+          "country": "France",
+          "club_or_team": "Arsenal",
+          "value": 2,
+          "display_value": "2 Altın Ayakkabı",
+          "note": "Representative tied two-time winner.",
+          "image_url": "/records/thierry_henry.jpg",
+          "source_note": "RSSSF Golden Boot archive.",
+          "verification_status": "partial"
+        }
+      ]
+    },
+    {
+      "id": "ucl_top_scorers",
+      "title": "Şampiyonlar Ligi Gol Kralları",
+      "group": "Turnuva / Organizasyon Rekorları",
+      "group_id": "tournaments",
+      "description": "UEFA Champions League tarihinde, elemeler hariç, en çok gol atan oyuncular.",
+      "metric_label": "Gol",
+      "unit": "gol",
+      "verification_status": "partial",
+      "updated_at": "2026-07-10",
+      "sources": [
+        {
+          "name": "UEFA",
+          "url": "https://www.uefa.com/uefachampionsleague/news/0257-0e910cf2494a-5185150de9d4-1000--champions-league-all-time-top-scorers-cristiano-ronaldo/",
+          "type": "official"
+        }
+      ],
+      "entries": [
+        {
+          "rank": 1,
+          "name": "Cristiano Ronaldo",
+          "country": "Portugal",
+          "club_or_team": "Manchester United / Real Madrid / Juventus",
+          "value": 140,
+          "display_value": "140 gol",
+          "note": "UEFA Champions League, qualifying excluded.",
+          "image_url": "/records/cristiano_ronaldo.jpg",
+          "source_note": "UEFA all-time top scorers page.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 2,
+          "name": "Lionel Messi",
+          "country": "Argentina",
+          "club_or_team": "Barcelona / Paris Saint-Germain",
+          "value": 129,
+          "display_value": "129 gol",
+          "note": "UEFA Champions League, qualifying excluded.",
+          "image_url": "/records/lionel_messi.jpg",
+          "source_note": "UEFA all-time top scorers page.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 3,
+          "name": "Robert Lewandowski",
+          "country": "Poland",
+          "club_or_team": "Borussia Dortmund / Bayern Munich / Barcelona",
+          "value": 105,
+          "display_value": "105 gol",
+          "note": "Active-player totals should be rechecked before marking verified.",
+          "image_url": "/records/robert_lewandowski.jpg",
+          "source_note": "UEFA all-time top scorers page.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 4,
+          "name": "Karim Benzema",
+          "country": "France",
+          "club_or_team": "Lyon / Real Madrid",
+          "value": 90,
+          "display_value": "90 gol",
+          "note": "UEFA Champions League, qualifying excluded.",
+          "image_url": "/records/karim_benzema.jpg",
+          "source_note": "UEFA all-time top scorers page.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 5,
+          "name": "Raúl",
+          "country": "Spain",
+          "club_or_team": "Real Madrid / Schalke",
+          "value": 71,
+          "display_value": "71 gol",
+          "note": "UEFA Champions League, qualifying excluded.",
+          "image_url": "/records/raul.jpg",
+          "source_note": "UEFA all-time top scorers page.",
+          "verification_status": "partial"
+        }
+      ]
+    },
+    {
+      "id": "ucl_club_titles",
+      "title": "En Çok Şampiyonlar Ligi / Avrupa Kupası Kazanan Kulüpler",
+      "group": "Kulüp Rekorları",
+      "group_id": "clubs",
+      "description": "European Cup ve UEFA Champions League toplamında en çok şampiyon olan kulüpler.",
+      "metric_label": "Kupa",
+      "unit": "adet",
+      "verification_status": "verified",
+      "updated_at": "2026-07-10",
+      "sources": [
+        {
+          "name": "UEFA - Winners",
+          "url": "https://www.uefa.com/uefachampionsleague/history/winners/",
+          "type": "official"
+        },
+        {
+          "name": "UEFA - History",
+          "url": "https://www.uefa.com/uefachampionsleague/history/",
+          "type": "official"
+        }
+      ],
+      "entries": [
+        {
+          "rank": 1,
+          "name": "Real Madrid",
+          "country": "Spain",
+          "club_or_team": "Real Madrid",
+          "value": 15,
+          "display_value": "15 kupa",
+          "note": "European Cup + UEFA Champions League.",
+          "image_url": "/records/real_madrid.png",
+          "source_note": "UEFA history and winners pages list Real Madrid first.",
+          "verification_status": "verified"
+        },
+        {
+          "rank": 2,
+          "name": "Milan",
+          "country": "Italy",
+          "club_or_team": "AC Milan",
+          "value": 7,
+          "display_value": "7 kupa",
+          "note": "European Cup + UEFA Champions League.",
+          "image_url": "/records/milan.png",
+          "source_note": "UEFA winners page.",
+          "verification_status": "verified"
+        },
+        {
+          "rank": 3,
+          "name": "Bayern Munich",
+          "country": "Germany",
+          "club_or_team": "Bayern Munich",
+          "value": 6,
+          "display_value": "6 kupa",
+          "note": "European Cup + UEFA Champions League.",
+          "image_url": "/records/bayern_munich.png",
+          "source_note": "UEFA winners page.",
+          "verification_status": "verified"
+        },
+        {
+          "rank": 3,
+          "name": "Liverpool",
+          "country": "England",
+          "club_or_team": "Liverpool",
+          "value": 6,
+          "display_value": "6 kupa",
+          "note": "European Cup + UEFA Champions League.",
+          "image_url": "/records/liverpool.png",
+          "source_note": "UEFA winners page.",
+          "verification_status": "verified"
+        },
+        {
+          "rank": 5,
+          "name": "Barcelona",
+          "country": "Spain",
+          "club_or_team": "Barcelona",
+          "value": 5,
+          "display_value": "5 kupa",
+          "note": "European Cup + UEFA Champions League.",
+          "image_url": null,
+          "source_note": "UEFA winners page.",
+          "verification_status": "verified"
+        }
+      ]
+    },
+    {
+      "id": "ucl_player_titles",
+      "title": "En Çok Avrupa Kupası / Şampiyonlar Ligi Kazanan Oyuncular",
+      "group": "Turnuva / Organizasyon Rekorları",
+      "group_id": "tournaments",
+      "description": "European Cup ve UEFA Champions League final kazanan kadrolarında en çok yer alan oyuncular.",
+      "metric_label": "Kupa",
+      "unit": "adet",
+      "verification_status": "partial",
+      "updated_at": "2026-07-10",
+      "sources": [
+        {
+          "name": "UEFA - Gento",
+          "url": "https://www.uefa.com/uefachampionsleague/news/0220-0e900b004950-fce66725ba68-1000--gento-salutes-real-madrid-icon-di-stefano/",
+          "type": "official"
+        },
+        {
+          "name": "UEFA - Real Madrid 2024 final notes",
+          "url": "https://www.uefa.com/uefachampionsleague/news/028e-1b07e18d875a-ba78e4b9d9fc-1000--real-madrid-win-champions-league-carvajal-and-vinicius-jun/",
+          "type": "official"
+        }
+      ],
+      "entries": [
+        {
+          "rank": 1,
+          "name": "Paco Gento",
+          "country": "Spain",
+          "club_or_team": "Real Madrid",
+          "value": 6,
+          "display_value": "6 kupa",
+          "note": "European Cup era.",
+          "image_url": "/records/paco_gento.jpg",
+          "source_note": "UEFA describes Gento's six-title benchmark.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 1,
+          "name": "Luka Modrić",
+          "country": "Croatia",
+          "club_or_team": "Real Madrid",
+          "value": 6,
+          "display_value": "6 kupa",
+          "note": "Matched Gento's record in 2024 according to UEFA match notes.",
+          "image_url": "/records/luka_modric.jpg",
+          "source_note": "UEFA 2024 final notes.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 1,
+          "name": "Dani Carvajal",
+          "country": "Spain",
+          "club_or_team": "Real Madrid",
+          "value": 6,
+          "display_value": "6 kupa",
+          "note": "Matched Gento's record in 2024 according to UEFA match notes.",
+          "image_url": "/records/dani_carvajal.jpg",
+          "source_note": "UEFA 2024 final notes.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 1,
+          "name": "Toni Kroos",
+          "country": "Germany",
+          "club_or_team": "Bayern Munich / Real Madrid",
+          "value": 6,
+          "display_value": "6 kupa",
+          "note": "Six winner medals including Bayern Munich and Real Madrid.",
+          "image_url": "/records/toni_kroos.jpg",
+          "source_note": "UEFA 2024 final notes and winners context.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 1,
+          "name": "Nacho",
+          "country": "Spain",
+          "club_or_team": "Real Madrid",
+          "value": 6,
+          "display_value": "6 kupa",
+          "note": "Six winner medals with Real Madrid.",
+          "image_url": "/records/nacho.jpg",
+          "source_note": "UEFA 2024 final notes and winners context.",
+          "verification_status": "partial"
+        }
+      ]
+    },
+    {
+      "id": "world_cup_titles_player",
+      "title": "En Çok Dünya Kupası Kazanan Oyuncular",
+      "group": "Turnuva / Organizasyon Rekorları",
+      "group_id": "tournaments",
+      "description": "FIFA Dünya Kupası'nı oyuncu olarak en çok kazanan futbolcular.",
+      "metric_label": "Dünya Kupası",
+      "unit": "adet",
+      "verification_status": "partial",
+      "updated_at": "2026-07-10",
+      "sources": [
+        {
+          "name": "FIFA",
+          "url": "https://www.fifa.com/en/tournaments/mens/worldcup/articles/pele-three-world-cup-titles-only-player",
+          "type": "official"
+        },
+        {
+          "name": "FIFA - Brazil records",
+          "url": "https://www.fifa.com/en/articles/brazil-26-world-cup-records",
+          "type": "official"
+        }
+      ],
+      "entries": [
+        {
+          "rank": 1,
+          "name": "Pelé",
+          "country": "Brazil",
+          "club_or_team": "Brazil",
+          "value": 3,
+          "display_value": "3 Dünya Kupası",
+          "note": "1958, 1962, 1970.",
+          "image_url": "/records/pele.jpg",
+          "source_note": "FIFA states Pelé is the only player with three FIFA World Cup titles.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 2,
+          "name": "Vavá",
+          "country": "Brazil",
+          "club_or_team": "Brazil",
+          "value": 2,
+          "display_value": "2 Dünya Kupası",
+          "note": "1958, 1962.",
+          "image_url": "/records/vava.jpg",
+          "source_note": "FIFA Brazil records context.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 2,
+          "name": "Garrincha",
+          "country": "Brazil",
+          "club_or_team": "Brazil",
+          "value": 2,
+          "display_value": "2 Dünya Kupası",
+          "note": "1958, 1962.",
+          "image_url": "/records/garrincha.jpg",
+          "source_note": "FIFA Brazil records context.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 2,
+          "name": "Didi",
+          "country": "Brazil",
+          "club_or_team": "Brazil",
+          "value": 2,
+          "display_value": "2 Dünya Kupası",
+          "note": "1958, 1962.",
+          "image_url": "/records/didi.jpg",
+          "source_note": "FIFA Brazil records context.",
+          "verification_status": "partial"
+        },
+        {
+          "rank": 2,
+          "name": "Mário Zagallo",
+          "country": "Brazil",
+          "club_or_team": "Brazil",
+          "value": 2,
+          "display_value": "2 Dünya Kupası",
+          "note": "1958, 1962 as player.",
+          "image_url": "/records/mario_zagallo.jpg",
+          "source_note": "FIFA Brazil records context.",
+          "verification_status": "partial"
+        }
+      ]
+    },
+    {
+      "id": "world_cup_top_scorers",
+      "title": "Dünya Kupası Gol Rekoru",
+      "group": "Turnuva / Organizasyon Rekorları",
+      "group_id": "tournaments",
+      "description": "FIFA Dünya Kupası tüm zamanlar gol liderliği. Canlı turnuva yıllarında hızla değişebilir.",
+      "metric_label": "Gol",
+      "unit": "gol",
+      "verification_status": "needs_review",
+      "updated_at": "2026-07-10",
+      "sources": [
+        {
+          "name": "FIFA",
+          "url": "https://www.fifa.com/en/tournaments/mens/worldcup/articles/fifa-world-cup-all-time-leading-scorers",
+          "type": "official"
+        }
+      ],
+      "entries": [
+        {
+          "rank": 1,
+          "name": "FIFA güncel lideri",
+          "country": null,
+          "club_or_team": "FIFA World Cup",
+          "value": null,
+          "display_value": "Kaynak üzerinden güncel kontrol",
+          "note": "Bu kategori 2026 turnuvası sırasında değişebildiği için sayısal değer seed'de sabitlenmedi.",
+          "image_url": null,
+          "source_note": "Use FIFA current all-time scorers page before promoting to verified numeric record.",
+          "verification_status": "needs_review"
+        }
+      ]
+    }
+  ]
+}

@@ -162,9 +162,9 @@ export default function TournamentGamePage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto min-h-screen max-w-6xl px-4 pb-10 pt-6"
+      className="theme-games page-shell min-h-screen pb-10 pt-6"
     >
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="page-hero mb-6 flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="eyebrow">Oyunlar</p>
           <h1 className="mt-1 font-display text-3xl font-bold uppercase tracking-wide text-ink sm:text-5xl">
@@ -172,7 +172,7 @@ export default function TournamentGamePage() {
           </h1>
         </div>
         {currentMode && !champion && roundPlayers.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 rounded-xl border border-mid/60 bg-deep/70 px-4 py-2.5 sm:min-w-72">
+          <div className="grid grid-cols-2 gap-3 rounded-xl border border-white/10 bg-void/55 px-4 py-2.5 sm:min-w-72">
             <div>
               <p className="eyebrow">Tur</p>
               <p className="font-display text-xl font-bold text-neon">{label}</p>

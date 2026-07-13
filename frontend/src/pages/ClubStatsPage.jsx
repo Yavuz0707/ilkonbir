@@ -9,7 +9,7 @@ import { themeStyle } from "../utils/clubTheme";
 
 function StatTile({ label, value, tone = "text-ink" }) {
   return (
-    <div className="rounded-xl border border-mid/60 bg-deep/65 p-4 shadow-lift">
+    <div className="metric-tile p-4">
       <p className="eyebrow">{label}</p>
       <p className={`mt-2 font-display text-2xl font-bold uppercase ${tone}`}>{value}</p>
     </div>
@@ -75,7 +75,7 @@ export default function ClubStatsPage() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
       style={themeStyle(club)}
-      className="relative mx-auto max-w-6xl overflow-hidden px-4 pb-20 pt-10"
+      className="theme-clubs page-shell relative overflow-hidden pb-20 pt-10"
     >
       <span
         className="pointer-events-none fixed left-[-10%] top-20 h-80 w-80 rounded-full opacity-25 blur-3xl"
@@ -86,49 +86,52 @@ export default function ClubStatsPage() {
         style={{ background: "var(--club-secondary)" }}
       />
 
-      <section className="relative overflow-hidden rounded-xl border border-mid/60 bg-deep/70 p-5 shadow-lift sm:p-7">
+      <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-panel/70 shadow-lift">
         <div
-          className="absolute inset-x-0 top-0 h-1"
-          style={{ background: "linear-gradient(90deg, var(--club-primary), var(--club-secondary))" }}
+          className="h-1.5 w-full"
+          style={{ background: "linear-gradient(90deg, var(--club-primary), var(--club-secondary), var(--accent))" }}
+          aria-hidden="true"
         />
-        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center">
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border border-mid/60 bg-night/55 p-4">
+        <div className="grid gap-5 px-5 py-6 sm:grid-cols-[116px_minmax(0,1fr)_auto] sm:items-center sm:px-7 sm:py-7">
+          <div className="flex h-28 w-28 items-center justify-center rounded-2xl border border-white/10 bg-night/60 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
             {club.logo_url ? (
               <img src={club.logo_url} alt="" className="h-full w-full object-contain" />
             ) : (
               <span className="font-display text-2xl font-bold text-ink">{initials(club.name)}</span>
             )}
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="eyebrow">{club.league || "Kulup"}</p>
-            <h1 className="mt-1 font-display text-4xl font-bold uppercase tracking-wide text-ink sm:text-6xl">
+
+          <div className="min-w-0">
+            <p className="eyebrow">{club.league || "Kulüp"}</p>
+            <h1 className="mt-2 font-display text-4xl font-extrabold uppercase leading-none tracking-normal text-ink sm:text-6xl">
               {club.name}
             </h1>
-            <p className="mt-3 text-sm text-ink-muted">
-              {club.country || "Ulke yok"} {club.coach ? `- Teknik direktor: ${club.coach.name}` : ""}
+            <p className="mt-4 text-sm text-ink-muted">
+              {club.country || "Ülke yok"} {club.coach ? `- Teknik direktör: ${club.coach.name}` : ""}
             </p>
           </div>
+
           <Link
             to={`/club/${club.id}`}
-            className="rounded-lg border border-neon/70 bg-neon/10 px-5 py-3 text-center font-display text-sm font-bold uppercase tracking-wide text-neon shadow-glow-sm transition hover:bg-neon/15"
+            className="w-full rounded-lg border border-[var(--accent-line)] bg-[var(--accent-soft)] px-5 py-3 text-center font-mono text-xs font-bold uppercase tracking-[0.12em] text-[color-mix(in_srgb,var(--accent)_82%,white)] shadow-glow-sm transition hover:bg-white/[0.06] sm:w-auto"
           >
-            Saha Ekrani
+            Saha Ekranı
           </Link>
         </div>
       </section>
 
       <section className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile label="Kadro Degeri" value={formatValue(stats.total_market_value)} tone="text-gold" />
-        <StatTile label="Ortalama Deger" value={formatValue(stats.average_market_value)} />
+        <StatTile label="Kadro Değeri" value={formatValue(stats.total_market_value)} tone="text-gold" />
+        <StatTile label="Ortalama Değer" value={formatValue(stats.average_market_value)} />
         <StatTile label="Oyuncu" value={stats.player_count} tone="text-neon" />
         <StatTile label="Lig" value={club.league || "-"} />
       </section>
 
-      <section className="mt-5 rounded-xl border border-mid/60 bg-deep/65 p-5 shadow-lift">
-        <p className="eyebrow">Kulup Kaydi</p>
+      <section className="app-panel mt-5 p-5">
+        <p className="eyebrow">Kulüp Kaydı</p>
         <div className="mt-4 grid gap-3 text-sm text-ink-muted sm:grid-cols-2 lg:grid-cols-4">
           <p>
-            <span className="block font-display text-xs font-bold uppercase tracking-wide text-ink-faint">Ulke</span>
+            <span className="block font-display text-xs font-bold uppercase tracking-wide text-ink-faint">Ülke</span>
             {club.country || "-"}
           </p>
           <p>
@@ -147,10 +150,10 @@ export default function ClubStatsPage() {
       </section>
 
       <div className="mt-5 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-        <MarketValueChart points={stats.market_value_history} title="Kadro Degeri Trendi" />
+        <MarketValueChart points={stats.market_value_history} title="Kadro Değeri Trendi" />
 
-        <section className="rounded-xl border border-mid/60 bg-deep/65 p-5 shadow-lift">
-          <p className="eyebrow">En Degerli Oyuncular</p>
+        <section className="app-panel p-5">
+          <p className="eyebrow">En Değerli Oyuncular</p>
           <div className="mt-4 space-y-3">
             {topPlayers.map((player) => (
               <Link
@@ -170,7 +173,7 @@ export default function ClubStatsPage() {
         </section>
       </div>
 
-      <section className="mt-5 rounded-xl border border-mid/60 bg-deep/65 p-5 shadow-lift">
+      <section className="app-panel mt-5 p-5">
         <p className="eyebrow">Son Transferler</p>
         {stats.transfers?.length ? (
           <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -190,7 +193,7 @@ export default function ClubStatsPage() {
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-sm text-ink-muted">Kayitli transfer verisi yok.</p>
+          <p className="mt-4 text-sm text-ink-muted">Kayıtlı transfer verisi yok.</p>
         )}
       </section>
     </motion.main>

@@ -4,7 +4,6 @@ import Header from "./components/Header.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import ClubsPage from "./pages/ClubsPage.jsx";
 import ClubStatsPage from "./pages/ClubStatsPage.jsx";
-import ComingSoonPage from "./pages/ComingSoonPage.jsx";
 import ClueGuessGamePage from "./pages/ClueGuessGamePage.jsx";
 import GamesPage from "./pages/GamesPage.jsx";
 import HigherLowerGamePage from "./pages/HigherLowerGamePage.jsx";
@@ -12,6 +11,7 @@ import LogoQuizGamePage from "./pages/LogoQuizGamePage.jsx";
 import PlayerDetailPage from "./pages/PlayerDetailPage.jsx";
 import PlayersPage from "./pages/PlayersPage.jsx";
 import SilhouetteGamePage from "./pages/SilhouetteGamePage.jsx";
+import StatsRecordsPage from "./pages/StatsRecordsPage.jsx";
 import TransferRouteGamePage from "./pages/TransferRouteGamePage.jsx";
 import TournamentGamePage from "./pages/TournamentGamePage.jsx";
 import WorldCupPage from "./pages/WorldCupPage.jsx";
@@ -44,7 +44,8 @@ export default function App() {
             <Route path="/oyunlar/transfer-rotasi" element={<TransferRouteGamePage />} />
             <Route path="/oyunlar/turnuva" element={<TournamentGamePage />} />
             <Route path="/dunya-kupasi" element={<WorldCupPage />} />
-            <Route path="/istatistikler" element={<ComingSoonPage title="Istatistikler" />} />
+            <Route path="/istatistikler" element={<StatsRecordsPage />} />
+            <Route path="/istatistikler/rekorlar" element={<StatsRecordsPage />} />
             <Route path="/oyuncular" element={<PlayersPage />} />
             <Route path="/oyuncular/:playerId" element={<PlayerDetailPage />} />
           </Routes>

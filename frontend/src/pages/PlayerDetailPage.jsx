@@ -8,7 +8,7 @@ import { formatValue, ROLE_LABELS } from "../utils/format";
 
 function StatTile({ label, value, tone = "text-ink" }) {
   return (
-    <div className="rounded-xl border border-mid/60 bg-deep/65 p-4 shadow-lift">
+    <div className="metric-tile p-4">
       <p className="eyebrow">{label}</p>
       <p className={`mt-2 font-display text-2xl font-bold uppercase ${tone}`}>{value}</p>
     </div>
@@ -70,9 +70,9 @@ export default function PlayerDetailPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="mx-auto max-w-6xl px-4 pb-20 pt-10"
+      className="theme-players page-shell pb-20 pt-10"
     >
-      <section className="relative overflow-hidden rounded-xl border border-mid/60 bg-deep/70 p-5 shadow-lift sm:p-7">
+      <section className="page-hero p-5 sm:p-7">
         <span className="absolute right-0 top-0 h-48 w-48 translate-x-1/3 -translate-y-1/3 rounded-full bg-neon/10 blur-3xl" />
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center">
           <PlayerAvatar player={player} size="lg" />
@@ -90,7 +90,7 @@ export default function PlayerDetailPage() {
             {player.club && (
               <Link
                 to={`/kulupler/${player.club.id}`}
-                className="mt-4 inline-flex items-center gap-2 rounded-lg border border-mid/70 bg-night/45 px-3 py-2 text-sm font-semibold text-ink-muted transition hover:border-neon/50 hover:text-neon"
+                className="mt-4 inline-flex items-center gap-2 rounded-lg border border-white/10 bg-void/45 px-3 py-2 text-sm font-semibold text-ink-muted transition hover:border-[var(--accent-line)] hover:text-[color-mix(in_srgb,var(--accent)_82%,white)]"
               >
                 {player.club.logo_url && <img src={player.club.logo_url} alt="" className="h-5 w-5 object-contain" />}
                 {player.club.name}
@@ -110,7 +110,7 @@ export default function PlayerDetailPage() {
       <div className="mt-5 grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
         <MarketValueChart points={player.market_value_history} title="Deger Trendi" />
 
-        <section className="rounded-xl border border-mid/60 bg-deep/65 p-5 shadow-lift">
+        <section className="app-panel p-5">
           <p className="eyebrow">Kupalar</p>
           {player.trophies?.length ? (
             <div className="mt-4 space-y-3">
@@ -127,7 +127,7 @@ export default function PlayerDetailPage() {
         </section>
       </div>
 
-      <section className="mt-5 rounded-xl border border-mid/60 bg-deep/65 p-5 shadow-lift">
+      <section className="app-panel mt-5 p-5">
         <p className="eyebrow">Transfer Gecmisi</p>
         {player.transfers?.length ? (
           <div className="mt-4 grid gap-3">

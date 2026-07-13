@@ -225,10 +225,10 @@ export default function HigherLowerGamePage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="theme-games mx-auto min-h-screen max-w-6xl px-4 pb-10 pt-6"
+      className="theme-games page-shell min-h-screen pb-10 pt-6"
     >
       <ConfettiBurst burst={feedback.burst} />
-      <header className="section-shell relative mb-5 overflow-hidden rounded-2xl border border-white/10 bg-deep/65 p-5 shadow-lift sm:flex sm:items-end sm:justify-between">
+      <header className="page-hero mb-5 p-5 sm:flex sm:items-end sm:justify-between">
         <span className="motif-lines" aria-hidden="true" />
         <div>
           <p className="eyebrow">Oyunlar</p>
@@ -236,7 +236,7 @@ export default function HigherLowerGamePage() {
             Kim Daha <span className="text-fuchsia-300">İyi?</span>
           </h1>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl border border-white/10 bg-night/55 px-4 py-2.5 sm:mt-0 sm:min-w-64">
+        <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl border border-white/10 bg-void/55 px-4 py-2.5 sm:mt-0 sm:min-w-64">
           <div>
             <p className="eyebrow">Skor</p>
             <ScoreboardValue text={String(score)} className="text-2xl font-semibold text-cyan-300 sm:text-3xl" />

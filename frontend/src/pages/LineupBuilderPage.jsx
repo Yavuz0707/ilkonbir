@@ -151,7 +151,7 @@ export default function LineupBuilderPage() {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div
             className="skeleton relative mx-auto h-[min(80vh,860px)] w-full max-w-lg rounded-2xl"
-            style={{ aspectRatio: "68 / 100" }}
+            style={{ aspectRatio: "68 / 105" }}
             aria-label="Kadro yükleniyor"
           >
             {SKELETON_SPOTS.map(([x, y], i) => (
@@ -192,7 +192,7 @@ export default function LineupBuilderPage() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
       style={themeStyle(club)}
-      className="mx-auto min-h-screen max-w-6xl px-4 pb-28 pt-6 lg:h-[calc(100vh-73px)] lg:min-h-0 lg:overflow-hidden lg:pb-4"
+      className="mx-auto min-h-screen max-w-7xl px-4 pb-32 pt-6"
     >
       <span
         className="pointer-events-none fixed left-[-12%] top-16 h-[420px] w-[420px] rounded-full opacity-20 blur-3xl"
@@ -217,14 +217,14 @@ export default function LineupBuilderPage() {
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-1 gap-5 lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_300px] lg:grid-rows-[auto_minmax(0,1fr)] lg:gap-6">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,720px)_340px] lg:grid-rows-[auto_minmax(0,1fr)] lg:justify-center lg:gap-6">
         {/* Saha — masaüstünde solda, iki satırı kaplar */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.45, ease: "easeOut" }}
-          className="relative order-2 mx-auto w-full max-w-lg lg:order-none lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:h-full lg:max-w-none"
-          style={{ aspectRatio: "68 / 100" }}
+          className="relative order-2 mx-auto w-full max-w-lg lg:order-none lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:w-[min(31vw,470px)] lg:max-w-full"
+          style={{ aspectRatio: "68 / 105" }}
         >
           <PitchBackground />
           {lineup.slots.map((slot) => {
@@ -280,7 +280,7 @@ export default function LineupBuilderPage() {
         </div>
 
         {/* Rail alt: yedek kadro */}
-        <div className="order-3 min-h-0 lg:order-none lg:col-start-2 lg:row-start-2 lg:overflow-hidden">
+        <div className="order-3 min-h-0 lg:order-none lg:col-start-2 lg:row-start-2">
           <BenchList
             club={club}
             lineup={lineup}

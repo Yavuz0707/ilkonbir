@@ -43,27 +43,30 @@ export default function PlayersPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="theme-players mx-auto max-w-6xl px-4 pb-20 pt-10"
+      className="theme-players page-shell pb-20 pt-8"
     >
-      <header className="section-shell relative mb-8 overflow-hidden rounded-2xl border border-white/10 bg-deep/60 px-5 py-8 text-center shadow-lift">
+      <header className="page-hero mb-8 px-5 py-8 text-center">
         <span className="motif-lines" aria-hidden="true" />
         <p className="eyebrow">Oyuncular</p>
-        <h1 className="font-display text-4xl font-bold uppercase tracking-wide text-ink sm:text-6xl">
-          Oyuncu <span className="text-fuchsia-300">Merkezi</span>
+        <h1 className="mt-2 font-display text-5xl font-black uppercase tracking-wide text-ink sm:text-7xl">
+          Oyuncu <span className="accent-text">Merkezi</span>
         </h1>
-        <div className="mx-auto mt-5 flex w-full max-w-2xl flex-col gap-3 sm:flex-row">
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-ink-muted">
+          Yıldız oyuncuları arayın, pozisyona göre süzün ve değer trendlerine hızlıca ulaşın.
+        </p>
+        <div className="mx-auto mt-6 flex w-full max-w-2xl flex-col gap-3 sm:flex-row">
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Oyuncu ara..."
-            className="premium-surface min-w-0 flex-1 rounded-xl px-4 py-3 text-ink outline-none transition placeholder:text-ink-faint focus:border-fuchsia-300"
+            className="input-shell min-w-0 flex-1 rounded-xl px-4 py-3 outline-none transition"
           />
           <select
             value={position}
             onChange={(event) => setPosition(event.target.value)}
-            className="premium-surface rounded-xl px-4 py-3 font-display text-sm font-bold uppercase text-ink outline-none transition focus:border-fuchsia-300"
+            className="input-shell rounded-xl px-4 py-3 font-mono text-xs font-bold uppercase tracking-[0.1em] outline-none transition"
           >
-            <option value="">Tum mevkiler</option>
+            <option value="">Tüm mevkiler</option>
             {Object.entries(ROLE_LABELS).map(([key, label]) => (
               <option key={key} value={key}>
                 {label}
@@ -80,10 +83,8 @@ export default function PlayersPage() {
           ))}
         </div>
       ) : error ? (
-        <p className="rounded-xl border border-ember/50 bg-deep/70 p-5 text-center text-ember">
-          {error}
-        </p>
-      ) : (
+        <p className="app-panel border-ember/50 p-5 text-center text-ember">{error}</p>
+      ) : players.length ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {players.map((player, index) => (
             <motion.div
@@ -94,24 +95,28 @@ export default function PlayersPage() {
             >
               <Link
                 to={`/oyuncular/${player.id}`}
-                className="group flex h-full items-center gap-4 rounded-2xl border border-white/10 bg-deep/60 p-4 shadow-lift transition hover:-translate-y-1 hover:border-fuchsia-300/55 hover:bg-deep/80"
+                className="card-hover group flex h-full items-center gap-4 rounded-xl border border-white/10 bg-panel/50 p-4 shadow-lift"
               >
                 <PlayerAvatar player={player} size="sm" />
                 <div className="min-w-0 flex-1">
-                  <h2 className="truncate font-display text-lg font-bold uppercase tracking-wide text-ink group-hover:text-fuchsia-200">
+                  <h2 className="truncate font-display text-lg font-black uppercase tracking-wide text-ink group-hover:text-[color-mix(in_srgb,var(--accent)_76%,white)]">
                     {player.name}
                   </h2>
                   <p className="mt-1 truncate text-sm text-ink-muted">
-                    {player.club?.name || "Kulup yok"} - {ROLE_LABELS[player.position] || player.position}
+                    {player.club?.name || "Kulüp yok"} - {ROLE_LABELS[player.position] || player.position}
                   </p>
                 </div>
-                <span className="shrink-0 font-mono text-sm font-semibold text-gold">
+                <span className="shrink-0 rounded-lg border border-white/10 bg-void/55 px-2.5 py-1 font-mono text-sm font-semibold text-gold">
                   {formatValue(player.market_value)}
                 </span>
               </Link>
             </motion.div>
           ))}
         </div>
+      ) : (
+        <p className="app-panel py-12 text-center text-sm text-ink-muted">
+          Bu filtrelerle oyuncu bulunamadı.
+        </p>
       )}
     </motion.main>
   );

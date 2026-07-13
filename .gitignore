@@ -14,6 +14,7 @@ frontend/.env.local
 # IDE / OS
 .vscode/
 .DS_Store
+.codex-logs/
 
 .env
 backend/.env

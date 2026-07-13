@@ -59,10 +59,10 @@ export function SoundToggle({ enabled, onChange }) {
     <button
       type="button"
       onClick={() => onChange(!enabled)}
-      className="rounded-lg border border-mid/70 bg-deep/70 px-3 py-1.5 font-display text-xs font-bold uppercase tracking-wide text-ink-muted transition hover:border-neon/60 hover:text-neon"
+      className="rounded-lg border border-white/10 bg-void/70 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-ink-muted transition hover:border-[var(--accent-line)] hover:text-[color-mix(in_srgb,var(--accent)_82%,white)]"
       title="Ses efektleri"
     >
-      {enabled ? "Ses Acik" : "Ses Kapali"}
+      {enabled ? "Ses Açık" : "Ses Kapalı"}
     </button>
   );
 }
